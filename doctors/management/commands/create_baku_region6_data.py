@@ -3,22 +3,16 @@ Management command to create:
 - Region: "Baku Region 6"
 - One hospital in that region
 - 30 doctors assigned to that region and hospital
-
-By default this runs for ALL tenant company databases (multi-tenant setup),
-similar to `populate_test_doctors` and `populate_all_tenants_regions`.
 """
 
 from django.core.management.base import BaseCommand
-
-from subscription.models import Company
-from subscription.db_router import set_tenant_db, clear_tenant_db
 
 from regions.models import Region, City, Clinic
 from doctors.models import Doctor
 
 
 class Command(BaseCommand):
-    help = 'Create "Baku Region 6", a hospital in that region, and 30 doctors assigned to it (for all tenant databases).'
+    help = 'Create "Baku Region 6", a hospital in that region, and 30 doctors assigned to it.'
 
     REGION_NAME = "Baku Region 6"
     REGION_CODE = "BAK6"
@@ -28,69 +22,22 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         import sys
 
-        # Ensure UTF-8 output for Windows terminals
         try:
             sys.stdout.reconfigure(encoding="utf-8")
         except Exception:
-            # Not critical; continue with default encoding
             pass
 
-        companies = Company.objects.all()
-
-        if not companies.exists():
-            self.stdout.write(self.style.ERROR("No companies found!"))
-            return
-
-        self.stdout.write(self.style.SUCCESS(f"Found {companies.count()} companies\n"))
-
-        total_doctors_created = 0
-
-        for company in companies:
-            if not company.db_name:
-                self.stdout.write(
-                    self.style.WARNING(f"Skipping {company.name} (no database configured)")
-                )
-                continue
-
-            self.stdout.write(
-                self.style.WARNING(
-                    f"\n=== Creating Baku Region 6 data for {company.name} ({company.db_name}) ==="
-                )
-            )
-
-            # Switch to tenant database
-            set_tenant_db(company.db_name)
-
-            try:
-                created_count = self._create_region_hospital_and_doctors()
-                total_doctors_created += created_count
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"  [OK] Created {created_count} doctors for {company.name}"
-                    )
-                )
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f"  Error: {str(e)}"))
-                import traceback
-
-                traceback.print_exc()
-            finally:
-                clear_tenant_db()
-
+        created_count = self._create_region_hospital_and_doctors()
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n[SUCCESS] Finished creating Baku Region 6 data. Total doctors created: {total_doctors_created}"
+                f"\n[SUCCESS] Finished creating Baku Region 6 data. Doctors created: {created_count}"
             )
         )
 
     def _create_region_hospital_and_doctors(self) -> int:
         """
         Create the region, city, hospital clinic, and up to 30 doctors.
-        Returns the number of doctors created in this tenant DB.
-
-        Idempotent behavior:
-        - If region/city/clinic already exist, they are reused.
-        - If there are already >= 30 doctors in this region, no new doctors are added.
+        Returns the number of doctors created.
         """
 
         # 1) Create/get Region

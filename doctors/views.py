@@ -155,7 +155,8 @@ def add_doctor(request):
             errors.append('Dərəcə seçilməlidir!')
         if not category:
             errors.append('Kateqoriya seçilməlidir!')
-        # Cinsiyyət ad soyada görə avtomatik təyin olunur (ilk sözün sonu: a → Qadın, v → Kişi)
+        if gender not in ('male', 'female'):
+            errors.append('Cinsiyyət seçilməlidir!')
         
         if errors:
             for error in errors:
@@ -171,6 +172,7 @@ def add_doctor(request):
                 'ixtisas_id': ixtisas_id,
                 'degree': degree,
                 'category': category,
+                'gender': gender,
             }
             
             # Optional fields

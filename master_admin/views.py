@@ -167,7 +167,11 @@ def company_detail(request, company_id):
     # Get active subscription
     active_subscription = company.active_subscription
     
-    # Get tenant database data
+    from doctors.models import Doctor
+    from drugs.models import Drug
+    from django.db.models import Sum
+    from django.db import OperationalError, DatabaseError
+
     doctors = []
     drugs = []
     total_debt = 0
@@ -175,55 +179,21 @@ def company_detail(request, company_id):
     drugs_count = 0
     active_doctors_count = 0
     tenant_db_error = None
-    
-    if company.db_name:
-        from subscription.db_router import set_tenant_db, clear_tenant_db
-        from doctors.models import Doctor
-        from drugs.models import Drug
-        from django.db.models import Sum
-        from django.db import OperationalError, DatabaseError
-        
-        try:
-            # Set tenant database context
-            set_tenant_db(company.db_name)
-            
-            # Check if tables exist by trying to count
-            try:
-                # Get doctors with related data
-                doctors = list(Doctor.objects.select_related(
-                    'region', 'city', 'clinic', 'ixtisas'
-                ).all().order_by('-created_at')[:50])  # Limit to 50 for display
-                
-                doctors_count = Doctor.objects.count()
-                active_doctors_count = Doctor.objects.filter(is_active=True).count()
-                
-                # Calculate total debt
-                debt_sum = Doctor.objects.aggregate(
-                    total=Sum('yekun_borc')
-                )
-                total_debt = float(debt_sum['total'] or 0)
-            except (OperationalError, DatabaseError) as e:
-                # Tables don't exist - migrations not run
-                tenant_db_error = "Verilənlər bazası cədvəlləri yoxdur. Migrasiyaları icra edin."
-                doctors = []
-                doctors_count = 0
-                active_doctors_count = 0
-                total_debt = 0
-            
-            # Get drugs/medications
-            try:
-                drugs = list(Drug.objects.filter(is_active=True).order_by('ad')[:50])  # Limit to 50 for display
-                drugs_count = Drug.objects.filter(is_active=True).count()
-            except (OperationalError, DatabaseError):
-                # Drugs table doesn't exist
-                drugs = []
-                drugs_count = 0
-            
-        except Exception as e:
-            # If tenant database doesn't exist or has other issues
-            tenant_db_error = f"Verilənlər bazasına giriş xətası: {str(e)}"
-        finally:
-            clear_tenant_db()
+
+    try:
+        doctors = list(Doctor.objects.select_related(
+            'region', 'city', 'clinic', 'ixtisas'
+        ).all().order_by('-created_at')[:50])
+        doctors_count = Doctor.objects.count()
+        active_doctors_count = Doctor.objects.filter(is_active=True).count()
+        debt_sum = Doctor.objects.aggregate(total=Sum('yekun_borc'))
+        total_debt = float(debt_sum['total'] or 0)
+        drugs = list(Drug.objects.filter(is_active=True).order_by('ad')[:50])
+        drugs_count = Drug.objects.filter(is_active=True).count()
+    except (OperationalError, DatabaseError):
+        tenant_db_error = "Verilənlər bazası cədvəlləri yoxdur. Migrasiyaları icra edin."
+    except Exception as e:
+        tenant_db_error = f"Verilənlər bazasına giriş xətası: {str(e)}"
     
     context = {
         'company': company,
@@ -502,17 +472,9 @@ def export_company_doctors_excel(request, company_id):
     Export all doctors from a company to Excel file
     """
     company = get_object_or_404(Company, id=company_id)
-    
-    if not company.db_name:
-        messages.error(request, 'Bu şirkətin verilənlər bazası yoxdur.')
-        return redirect('master_admin:company_detail', company_id=company_id)
-    
-    from subscription.db_router import set_tenant_db, clear_tenant_db
     from doctors.models import Doctor
     
     try:
-        # Set tenant database context
-        set_tenant_db(company.db_name)
         
         # Get all doctors
         doctors = Doctor.objects.select_related(
@@ -671,8 +633,6 @@ def export_company_doctors_excel(request, company_id):
     except Exception as e:
         messages.error(request, f'Excel faylı yaradılarkən xəta baş verdi: {str(e)}')
         return redirect('master_admin:company_detail', company_id=company_id)
-    finally:
-        clear_tenant_db()
 
 
 @superuser_required
@@ -681,17 +641,9 @@ def export_company_debts_excel(request, company_id):
     Export all doctor debts from a company to Excel file
     """
     company = get_object_or_404(Company, id=company_id)
-    
-    if not company.db_name:
-        messages.error(request, 'Bu şirkətin verilənlər bazası yoxdur.')
-        return redirect('master_admin:company_detail', company_id=company_id)
-    
-    from subscription.db_router import set_tenant_db, clear_tenant_db
     from doctors.models import Doctor
     
     try:
-        # Set tenant database context
-        set_tenant_db(company.db_name)
         
         # Get all doctors with debts
         doctors = Doctor.objects.select_related(
@@ -832,8 +784,6 @@ def export_company_debts_excel(request, company_id):
     except Exception as e:
         messages.error(request, f'Excel faylı yaradılarkən xəta baş verdi: {str(e)}')
         return redirect('master_admin:company_detail', company_id=company_id)
-    finally:
-        clear_tenant_db()
 
 
 @superuser_required
@@ -845,9 +795,6 @@ def import_company_doctors_full_excel(request, company_id):
     Sütunlar: B=Bölgə, C=Həkim adı, D=İxtisas, E=Dərəcə, F=Kategoriya, G=Müəssisə, I=Borcu.
     """
     company = get_object_or_404(Company, id=company_id)
-    if not company.db_name:
-        messages.error(request, "Bu şirkətin verilənlər bazası yoxdur.")
-        return redirect("master_admin:company_detail", company_id=company_id)
 
     if request.method == "GET":
         return render(
@@ -868,8 +815,6 @@ def import_company_doctors_full_excel(request, company_id):
     if not (upload.name.endswith(".xlsx") or upload.name.endswith(".xlsm")):
         messages.error(request, "Yalnız .xlsx və ya .xlsm formatlı Excel faylları dəstəklənir.")
         return redirect("master_admin:import_company_doctors_full", company_id=company_id)
-
-    from subscription.db_router import set_tenant_db, clear_tenant_db
     from doctors.models import Doctor
     from regions.models import Region, City, Clinic, Specialization
     from decimal import Decimal, InvalidOperation
@@ -923,7 +868,6 @@ def import_company_doctors_full_excel(request, company_id):
     try:
         wb = load_workbook(upload, data_only=True)
         ws = wb.active
-        set_tenant_db(company.db_name)
         # Başlıq 1-ci və ya 2-ci sətirdə ola bilər; məlumat 2-ci sətirdən başlayır
         start_row = 2
         for row in range(start_row, ws.max_row + 1):
@@ -1012,8 +956,6 @@ def import_company_doctors_full_excel(request, company_id):
     except Exception as e:
         messages.error(request, f"Import xətası: {str(e)}")
         return redirect("master_admin:import_company_doctors_full", company_id=company_id)
-    finally:
-        clear_tenant_db()
 
 
 @superuser_required
@@ -1021,16 +963,10 @@ def import_company_doctors_full_excel(request, company_id):
 def zero_company_doctors_debts(request, company_id):
     """Bütün həkimlərin yalnız Əvvəlki borcunu 0 et (yekun borc yenidən hesablanacaq)."""
     company = get_object_or_404(Company, id=company_id)
-    if not company.db_name:
-        messages.error(request, "Bu şirkətin verilənlər bazası yoxdur.")
-        return redirect("master_admin:company_detail", company_id=company_id)
-
-    from subscription.db_router import set_tenant_db, clear_tenant_db
     from doctors.models import Doctor
     from decimal import Decimal
 
     try:
-        set_tenant_db(company.db_name)
         doctors = Doctor.objects.all()
         count = 0
         for doctor in doctors:
@@ -1040,8 +976,6 @@ def zero_company_doctors_debts(request, company_id):
         messages.success(request, f"Həkimlərin əvvəlki borcları sıfırlandı. Cəmi {count} həkim yeniləndi.")
     except Exception as e:
         messages.error(request, f"Borclar sıfırlanarkən xəta: {str(e)}")
-    finally:
-        clear_tenant_db()
     return redirect("master_admin:company_detail", company_id=company_id)
 
 
@@ -1054,10 +988,6 @@ def import_company_debts_excel(request, company_id):
     Gözlənilən sütunlar: Bölgə, Həkim adı, Yekun borc
     """
     company = get_object_or_404(Company, id=company_id)
-
-    if not company.db_name:
-        messages.error(request, "Bu şirkətin verilənlər bazası yoxdur.")
-        return redirect("master_admin:company_detail", company_id=company_id)
 
     if request.method == "GET":
         return render(
@@ -1080,8 +1010,6 @@ def import_company_debts_excel(request, company_id):
     if not (upload.name.endswith(".xlsx") or upload.name.endswith(".xlsm")):
         messages.error(request, "Yalnız .xlsx və ya .xlsm formatlı Excel faylları dəstəklənir.")
         return redirect("master_admin:import_company_debts", company_id=company_id)
-
-    from subscription.db_router import set_tenant_db, clear_tenant_db
     from doctors.models import Doctor
     from regions.models import Region
     from decimal import Decimal, InvalidOperation
@@ -1098,8 +1026,6 @@ def import_company_debts_excel(request, company_id):
         col_hekim = 2   # B
         col_yekun = 3   # C
         header_row = 1  # Birinci sətir başlıq ola bilər, məlumat 2-ci sətirdən
-
-        set_tenant_db(company.db_name)
 
         def to_decimal(val):
             if val is None or val == "":
@@ -1150,8 +1076,6 @@ def import_company_debts_excel(request, company_id):
     except Exception as e:
         messages.error(request, f"Excel faylı oxunarkən xəta baş verdi: {str(e)}")
         return redirect("master_admin:import_company_debts", company_id=company_id)
-    finally:
-        clear_tenant_db()
 
 
 @superuser_required
@@ -1167,10 +1091,6 @@ def import_company_drugs_excel(request, company_id):
     - Komissiya -> komissiya (optional, default 0)
     """
     company = get_object_or_404(Company, id=company_id)
-
-    if not company.db_name:
-        messages.error(request, "Bu şirkətin verilənlər bazası yoxdur.")
-        return redirect("master_admin:company_detail", company_id=company_id)
 
     if request.method == "GET":
         return render(
@@ -1192,8 +1112,6 @@ def import_company_drugs_excel(request, company_id):
     if not (upload.name.endswith(".xlsx") or upload.name.endswith(".xlsm")):
         messages.error(request, "Yalnız .xlsx və ya .xlsm formatlı Excel faylları dəstəklənir.")
         return redirect("master_admin:import_company_drugs", company_id=company_id)
-
-    from subscription.db_router import set_tenant_db, clear_tenant_db
     from drugs.models import Drug
     from decimal import Decimal, InvalidOperation
 
@@ -1227,8 +1145,6 @@ def import_company_drugs_excel(request, company_id):
         col_tam_ad = headers.get("tam ad")
         col_price = headers["qiymət"]
         col_comm = headers.get("komissiya")
-
-        set_tenant_db(company.db_name)
 
         def to_decimal(val):
             if val is None or val == "":
@@ -1300,6 +1216,4 @@ def import_company_drugs_excel(request, company_id):
     except Exception as e:
         messages.error(request, f"Excel faylı oxunarkən xəta baş verdi: {str(e)}")
         return redirect("master_admin:import_company_drugs", company_id=company_id)
-    finally:
-        clear_tenant_db()
 

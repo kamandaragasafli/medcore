@@ -32,14 +32,14 @@ def add_prescription(request):
                 # Get form data
                 region_id = request.POST.get('region_id')
                 doctor_id = request.POST.get('doctor_id')
-                date = request.POST.get('date')
+                date_str = request.POST.get('date')
            
                 # Validation
                 if not region_id:
                     messages.error(request, 'Bölgə seçilməlidir.')
                     return redirect('prescriptions:add')
                 
-                if not doctor_id or not date:
+                if not doctor_id or not date_str:
                     messages.error(request, 'Həkim və Tarix doldurulmalıdır.')
                     return redirect('prescriptions:add')
                 
@@ -65,15 +65,18 @@ def add_prescription(request):
                 region = Region.objects.get(id=region_id)
                 
                 # Validate date against last closed report
-                prescription_date = datetime.strptime(date, '%Y-%m-%d').date()
+                try:
+                    prescription_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    messages.error(request, 'Tarix formatı yanlışdır.')
+                    return redirect('prescriptions:add')
+
                 last_report = MonthlyDoctorReport.objects.filter(
                     region_id=region_id
                 ).order_by('-year', '-month').first()
                 
                 if last_report:
                     # Calculate the next month after last closed report
-                    last_closed_date = date(last_report.year, last_report.month, 1)
-                    # Get first day of next month
                     if last_report.month == 12:
                         next_month_date = date(last_report.year + 1, 1, 1)
                     else:
@@ -94,7 +97,7 @@ def add_prescription(request):
                 prescription = Prescription.objects.create(
                     region=region,
                     doctor=doctor,
-                    date=date
+                    date=prescription_date
                 )
                 
                 # Add drugs to prescription
@@ -491,196 +494,122 @@ def _get_last_payments(doctor):
 @subscription_required
 def export_prescriptions_excel(request):
     """
-    Export prescriptions to Excel file with formatting
+    Export filtered doctor summary to Excel (same data as list table).
     """
-    # Get filters from request
+    from io import BytesIO
+
     filters = _build_filters(request)
-    
-    # Get filtered prescriptions
-    prescriptions = Prescription.objects.select_related(
-        'doctor', 'region'
-    ).prefetch_related('items__drug').all()
-    
-    # Apply filters
-    if filters['region']:
-        prescriptions = prescriptions.filter(region_id=filters['region'])
-    
-    if filters['start_date']:
-        try:
-            start_date = datetime.strptime(filters['start_date'], '%Y-%m-%d').date()
-            prescriptions = prescriptions.filter(date__gte=start_date)
-        except ValueError:
-            pass
-    
-    if filters['end_date']:
-        try:
-            end_date = datetime.strptime(filters['end_date'], '%Y-%m-%d').date()
-            prescriptions = prescriptions.filter(date__lte=end_date)
-        except ValueError:
-            pass
-    
-    if filters['doctor']:
-        prescriptions = prescriptions.filter(
-            Q(doctor__ad__icontains=filters['doctor']) |
-            Q(doctor__code__icontains=filters['doctor'])
-        )
-    
-    prescriptions = prescriptions.order_by('-date', '-created_at')
-    
-    # Get ALL active drugs (not just from prescriptions) - so new drugs automatically get columns
-    all_drugs = Drug.objects.filter(is_active=True).order_by('ad')
-    drugs_list = [(drug.id, drug.ad) for drug in all_drugs]
-    drug_columns = {drug_id: idx for idx, (drug_id, _) in enumerate(drugs_list, start=5)}
-    
-    # Get last payments for all doctors
-    doctor_ids = list(set(prescriptions.values_list('doctor_id', flat=True)))
-    payments_map = {}
-    if doctor_ids:
-        from doctors.models import DoctorPayment
-        # Get the most recent payment for each doctor
-        for doctor_id in doctor_ids:
-            last_payment = (
-                DoctorPayment.objects
-                .filter(doctor_id=doctor_id)
-                .order_by('-date', '-created_at')
-                .first()
-            )
-            if last_payment:
-                payments_map[doctor_id] = last_payment
-    
-    # Create workbook and worksheet
+
+    if not filters['region']:
+        messages.error(request, 'Excel üçün əvvəlcə bölgə seçin.')
+        return redirect('prescriptions:list')
+
+    doctor_summary, _stats = _get_filtered_summary(filters, request)
+    drugs = list(_get_drugs())
+
     wb = Workbook()
     ws = wb.active
     ws.title = "Resept Qeydiyyatları"
-    
-    # Define styles
-    header_font = Font(name='Arial', size=12, bold=True, color='FFFFFF')
+
+    header_font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
     header_fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
     header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    
     cell_font = Font(name='Arial', size=11)
     cell_alignment = Alignment(horizontal='left', vertical='center')
     number_alignment = Alignment(horizontal='right', vertical='center')
-    date_alignment = Alignment(horizontal='center', vertical='center')
-    
     border = Border(
         left=Side(style='thin', color='000000'),
         right=Side(style='thin', color='000000'),
         top=Side(style='thin', color='000000'),
-        bottom=Side(style='thin', color='000000')
+        bottom=Side(style='thin', color='000000'),
     )
-    
-    # Define fixed column headers
-    fixed_headers = [
+
+    headers = [
         ('№', 6),
-        ('Bölgə', 18),
-        ('Son Ödəniş', 15),
+        ('Həkim', 28),
         ('Kod', 12),
+        ('Son Ödənişlər', 22),
     ]
-    
-    # Add drug columns
-    drug_headers = [(drug_name, 15) for _, drug_name in drugs_list]
-    
-    # Add Cem column at the end
-    all_headers = fixed_headers + drug_headers + [('Cem', 12)]
-    
-    # Write headers
-    for col_num, (header, width) in enumerate(all_headers, 1):
-        cell = ws.cell(row=1, column=col_num)
-        cell.value = header
+    for drug in drugs:
+        headers.append((drug.ad, 14))
+    headers.append(('Toplam', 12))
+
+    for col_num, (header, width) in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num, value=header)
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = header_alignment
         cell.border = border
         ws.column_dimensions[get_column_letter(col_num)].width = width
-    
-    # Write data - one row per prescription
+
+    total_font = Font(name='Arial', size=11, bold=True)
+    total_fill = PatternFill(start_color='E2EFDA', end_color='E2EFDA', fill_type='solid')
+    drug_totals = {drug.ad: 0 for drug in drugs}
+    grand_total = 0
+
     row_num = 2
-    prescription_num = 1
-    
-    for prescription in prescriptions:
-        # Get all items for this prescription
-        items = prescription.items.all()
-        
-        if not items:
-            continue  # Skip prescriptions without items
-        
-        # Get last payment for this doctor
-        last_payment = payments_map.get(prescription.doctor_id)
-        last_payment_str = '-'
-        if last_payment:
-            last_payment_str = f"{last_payment.date.strftime('%d.%m.%Y')} {float(last_payment.amount):.2f} ₼"
-        
-        # Create a dictionary for drug quantities in this prescription
-        prescription_drugs = {}
-        total_quantity = 0
-        for item in items:
-            if item.drug:
-                drug_id = item.drug.id
-                quantity = item.quantity
-                prescription_drugs[drug_id] = quantity
-                total_quantity += quantity
-        
-        # Write one row per prescription
-        # № (Column 1)
-        cell = ws.cell(row=row_num, column=1)
-        cell.value = prescription_num
-        cell.font = cell_font
-        cell.alignment = cell_alignment
-        cell.border = border
-        
-        # Bölgə (Column 2)
-        cell = ws.cell(row=row_num, column=2)
-        cell.value = prescription.region.name if prescription.region else '-'
-        cell.font = cell_font
-        cell.alignment = cell_alignment
-        cell.border = border
-        
-        # Son Ödəniş (Column 3)
-        cell = ws.cell(row=row_num, column=3)
-        cell.value = last_payment_str
-        cell.font = cell_font
-        cell.alignment = cell_alignment
-        cell.border = border
-        
-        # Kod (Column 4)
-        cell = ws.cell(row=row_num, column=4)
-        cell.value = prescription.doctor.code if prescription.doctor else '-'
-        cell.font = cell_font
-        cell.alignment = cell_alignment
-        cell.border = border
-        
-        # Write drug quantities in their respective columns
-        for drug_id, col_num in drug_columns.items():
-            quantity = prescription_drugs.get(drug_id, 0)
-            cell = ws.cell(row=row_num, column=col_num)
-            cell.value = quantity if quantity > 0 else ''
+    for idx, row in enumerate(doctor_summary, start=1):
+        doctor = row['doctor']
+        payments = row.get('last_payments') or []
+        if payments:
+            payment_str = ' | '.join(
+                f'{p.date.strftime("%d.%m.%Y")} {float(p.amount):.2f} ₼' for p in payments
+            )
+        else:
+            payment_str = '-'
+
+        values = [
+            idx,
+            doctor.ad if doctor else '-',
+            doctor.code if doctor else '-',
+            payment_str,
+        ]
+        for drug in drugs:
+            qty = row['drugs'].get(drug.ad, 0) or 0
+            values.append(qty)
+            drug_totals[drug.ad] += qty
+        row_total = row.get('total_quantity', 0) or 0
+        values.append(row_total)
+        grand_total += row_total
+
+        for col_num, value in enumerate(values, 1):
+            cell = ws.cell(row=row_num, column=col_num, value=value)
             cell.font = cell_font
-            cell.alignment = number_alignment
             cell.border = border
-        
-        # Cem (Last column) - total quantity
-        cem_col = len(all_headers)
-        cell = ws.cell(row=row_num, column=cem_col)
-        cell.value = total_quantity
-        cell.font = cell_font
-        cell.alignment = number_alignment
-        cell.border = border
-        
+            cell.alignment = number_alignment if col_num >= 5 else cell_alignment
+
         row_num += 1
-        prescription_num += 1
-    
-    # Freeze first row
+
+    if not doctor_summary:
+        cell = ws.cell(row=2, column=1, value='Seçilmiş filtrə uyğun nəticə tapılmadı.')
+        ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
+        row_num = 3
+
+    # Cəm sətiri — altda
+    cem_values = ['', 'CƏM', '', '']
+    for drug in drugs:
+        cem_values.append(drug_totals[drug.ad])
+    cem_values.append(grand_total)
+
+    for col_num, value in enumerate(cem_values, 1):
+        cell = ws.cell(row=row_num, column=col_num, value=value)
+        cell.font = total_font
+        cell.fill = total_fill
+        cell.border = border
+        cell.alignment = number_alignment if col_num >= 5 else cell_alignment
+
     ws.freeze_panes = 'A2'
-    
-    # Create HTTP response
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        output.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
     filename = f'Resept_Qeydiyyatlari_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    
-    wb.save(response)
     return response
 
 

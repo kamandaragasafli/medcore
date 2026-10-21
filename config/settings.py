@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'subscription',  # Multi-tenant SaaS
+    'subscription',  # Subscription / billing
     'master_admin',  # Master Admin Panel (Superuser only)
     'core',
     'regions',  # Regions, Cities, Clinics, Specializations
@@ -60,7 +60,7 @@ MIDDLEWARE = [
     'core.middleware.AdminSuperuserRestrictionMiddleware',  # Restrict Django admin to superadmin only
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'subscription.middleware.TenantMiddleware',  # Multi-tenant context
+    'subscription.middleware.CompanyContextMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -90,11 +90,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # Local: SQLite (default). Production: set DJANGO_SETTINGS_MODULE=config.settings_production → PostgreSQL
 
-# Master database for subscriptions, users, auth
 USE_POSTGRESQL = config('USE_POSTGRESQL', default=False, cast=bool)
 
 if USE_POSTGRESQL:
-    # PostgreSQL for production
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -109,18 +107,12 @@ if USE_POSTGRESQL:
         }
     }
 else:
-    # SQLite for local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-# Tenant databases will be added dynamically at runtime
-
-# Database router for multi-tenant architecture
-DATABASE_ROUTERS = ['subscription.db_router.TenantDatabaseRouter']
 
 
 # Password validation
@@ -198,12 +190,11 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-# OpenAI Configuration for AI Chatbot
-# IMPORTANT: For production, use environment variable: export OPENAI_API_KEY="your-key-here"
-# Or add to .env file: OPENAI_API_KEY=your-key-here
+# OpenAI Configuration for AI Chatbot (hidden until re-enabled)
+CHATBOT_ENABLED = config('CHATBOT_ENABLED', default=False, cast=bool)
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
-OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-3.5-turbo')  # OpenAI model to use (gpt-3.5-turbo, gpt-4, etc.)
-CHATBOT_API_KEY = config('CHATBOT_API_KEY', default='20251129')  # API key for securing chatbot query endpoint
+OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-3.5-turbo')
+CHATBOT_API_KEY = config('CHATBOT_API_KEY', default='20251129')
 
 # System Branding Configuration
 SYSTEM_NAME = config('SYSTEM_NAME', default='MedCore')

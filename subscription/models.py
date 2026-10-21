@@ -6,30 +6,21 @@ from datetime import timedelta
 
 class Company(models.Model):
     """
-    Multi-tenant Company/Organization Model
-    Each company has its own separate database
+    Company/Organization for this deployment.
+    One company per install (copy the app for another customer).
     """
     name = models.CharField(max_length=200, verbose_name='Company Name')
     slug = models.SlugField(unique=True, max_length=200)
     email = models.EmailField(unique=True, verbose_name='Company Email')
     phone = models.CharField(max_length=20, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    
-    # Database Configuration
-    db_name = models.CharField(
-        max_length=100, 
-        unique=True, 
-        null=True,  # Temporary, will be required after data migration
-        blank=True,
-        help_text='Database identifier for this company'
-    )
-    
+
     # Branding
     logo = models.ImageField(upload_to='company_logos/', blank=True, null=True, verbose_name='Company Logo')
-    
+
     # Company Details
     license_number = models.CharField(max_length=100, blank=True, null=True, verbose_name='Medical License')
-    tax_number = models.CharField(max_length=50, blank=True, null=True)
+    tax_number = models.CharField(max_length=50, blank=True, null=True, verbose_name='VÖEN')
     website = models.URLField(blank=True, null=True)
     
     # Status
@@ -68,6 +59,7 @@ class SubscriptionPlan(models.Model):
     Subscription Plans (Basic, Professional, Enterprise)
     """
     PLAN_TYPES = [
+        ('starter', 'Starter'),
         ('basic', 'Basic'),
         ('professional', 'Professional'),
         ('enterprise', 'Enterprise'),

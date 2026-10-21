@@ -88,9 +88,9 @@ class ClinicAdmin(admin.ModelAdmin):
 
 @admin.register(Specialization)
 class SpecializationAdmin(admin.ModelAdmin):
-    list_display = ['name']
-    search_fields = ['name']
-    ordering = ['name']
+    list_display = ['code', 'name']
+    search_fields = ['name', 'code']
+    ordering = ['code', 'name']
     
     def has_module_permission(self, request):
         """Allow access if user is staff or superuser"""

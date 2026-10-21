@@ -40,15 +40,6 @@
         </div>
     </div>
 
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <!-- Form Section -->
     <div class="form-container" style="max-width: 600px; margin: 0 auto;">
         <div class="form-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px;">

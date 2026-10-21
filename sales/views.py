@@ -3,6 +3,7 @@ from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.contrib import messages
+from datetime import datetime
 
 from subscription.decorators import subscription_required
 from .models import Sale, SaleItem
@@ -119,10 +120,16 @@ def add_sale(request):
             with transaction.atomic():
 
                 region_id = request.POST.get("region_id")
-                date = request.POST.get("date")
+                date_str = request.POST.get("date")
 
-                if not region_id or not date:
+                if not region_id or not date_str:
                     messages.error(request, "Bölgə və tarix seçilməlidir.")
+                    return redirect("sales:add")
+
+                try:
+                    sale_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                except ValueError:
+                    messages.error(request, "Tarix formatı yanlışdır.")
                     return redirect("sales:add")
 
                 region = Region.objects.get(id=region_id)
@@ -130,7 +137,7 @@ def add_sale(request):
                 # Create Sale
                 sale = Sale.objects.create(
                     region=region,
-                    date=date
+                    date=sale_date
                 )
 
                 # Collect drug quantities
@@ -215,14 +222,20 @@ def edit_sale(request, sale_id):
         try:
             with transaction.atomic():
                 region_id = request.POST.get("region_id")
-                date = request.POST.get("date")
-                if not region_id or not date:
+                date_str = request.POST.get("date")
+                if not region_id or not date_str:
                     messages.error(request, "Bölgə və tarix seçilməlidir.")
+                    return redirect("sales:edit", sale_id=sale_id)
+
+                try:
+                    sale_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                except ValueError:
+                    messages.error(request, "Tarix formatı yanlışdır.")
                     return redirect("sales:edit", sale_id=sale_id)
 
                 region = Region.objects.get(id=region_id)
                 sale.region = region
-                sale.date = date
+                sale.date = sale_date
                 sale.save()
 
                 # Collect drug quantities from form

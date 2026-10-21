@@ -13,4 +13,5 @@ def system_branding(request):
         'SYSTEM_SUBTITLE': getattr(settings, 'SYSTEM_SUBTITLE', ''),
         'SYSTEM_LOGO': getattr(settings, 'SYSTEM_LOGO', 'img/icon.png'),
         'SYSTEM_FAVICON': getattr(settings, 'SYSTEM_FAVICON', 'img/icon.png'),
+        'CHATBOT_ENABLED': getattr(settings, 'CHATBOT_ENABLED', False),
     }

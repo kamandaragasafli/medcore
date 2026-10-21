@@ -11,7 +11,6 @@ class Doctor(models.Model):
     GENDER_CHOICES = [
         ('male', 'Kişi'),
         ('female', 'Qadın'),
-        ('', 'Yox'),
     ]
     
     CATEGORY_CHOICES = [
@@ -44,8 +43,7 @@ class Doctor(models.Model):
     gender = models.CharField(
         max_length=10,
         choices=GENDER_CHOICES,
-        default='',
-        blank=True,
+        default='male',
         verbose_name="Cinsiyyət"
     )
     
@@ -144,35 +142,10 @@ class Doctor(models.Model):
     def __str__(self):
         return f"{self.ad} ({self.code})"
 
-    @staticmethod
-    def gender_from_name(ad):
-        """
-        Cinsiyyəti ada görə təyin et: ilk sözün sonu 'a' ilə bitərsə Qadın,
-        'v' ilə bitərsə Kişi, heç biri ilə bitmirsə Yox.
-        Məs: Həmidova Ayşə → Qadın (Həmidova 'a' ilə bitir).
-        """
-        if not ad or not ad.strip():
-            return ''
-        parts = ad.strip().split()
-        if not parts:
-            return ''
-        first_word = parts[0]
-        if not first_word:
-            return ''
-        last_char = first_word[-1].lower()
-        if last_char == 'a':
-            return 'female'
-        if last_char == 'v':
-            return 'male'
-        return ''
-
     def save(self, *args, **kwargs):
         # Auto-generate code if not provided or if it's the default value
         if not self.code or self.code == '000000':
             self.code = self.generate_unique_code()
-        # Cinsiyyəti ada görə təyin et (ilk sözün son hərfi: a → Qadın, v → Kişi)
-        if self.ad:
-            self.gender = Doctor.gender_from_name(self.ad)
         # Auto-calculate yekun_borc (final debt)
         self.calculate_final_debt()
         super().save(*args, **kwargs)

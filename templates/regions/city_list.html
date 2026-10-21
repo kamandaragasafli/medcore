@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - Şəhərlər{% endblock %}
+
+{% block active_cities %}active{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Şəhərlər</div>
+            <h1>Şəhərlər</h1>
+            <p>Şəhərləri idarə edin və yeni şəhərlər əlavə edin</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'regions:add_city' %}" class="primary-btn" style="text-decoration: none;">
+                <i class="fas fa-plus"></i>
+                Yeni Şəhər
+            </a>
+        </div>
+    </div>
+
+    <div class="filter-section" style="background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
+        <div class="filter-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">
+            <div class="filter-group">
+                <label class="filter-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">Şəhər adı</label>
+                <input type="text" class="filter-input" id="searchInput" placeholder="Şəhər adı axtar..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text);">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">Bölgə</label>
+                <select class="filter-select" id="regionFilter" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text);">
+                    <option value="">Hamısı</option>
+                    {% for city in cities %}
+                        {% ifchanged city.region_id %}
+                            <option value="{{ city.region.id }}">{{ city.region.name }}</option>
+                        {% endifchanged %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn" onclick="filterCities()" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-search"></i>
+                    Axtar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cities-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+        {% for city in cities %}
+        <div class="city-card" data-region="{{ city.region.id }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.3s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h3 class="city-name" style="font-size: 18px; font-weight: 600; color: var(--text); margin: 0;">{{ city.name }}</h3>
+                    <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">
+                        <i class="fas fa-map-marker-alt"></i> {{ city.region.name }}
+                    </div>
+                </div>
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #0ea5e9, #38bdf8); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                    <i class="fas fa-city"></i>
+                </div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Klinika sayı</span>
+                <span style="font-size: 16px; font-weight: 600; color: var(--text);">{{ city.clinics.count }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+            <i class="fas fa-city" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+            <h3 style="color: var(--text); margin-bottom: 8px;">Heç bir şəhər tapılmadı</h3>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">İlk şəhəri əlavə etmək üçün "Yeni Şəhər" düyməsini klikləyin</p>
+            <a href="{% url 'regions:add_city' %}" class="primary-btn" style="text-decoration: none; display: inline-block;">
+                <i class="fas fa-plus"></i>
+                Yeni Şəhər Əlavə Et
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filterCities() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const selectedRegion = document.getElementById('regionFilter').value;
+    document.querySelectorAll('.city-card').forEach(card => {
+        const name = card.querySelector('.city-name').textContent.toLowerCase();
+        const regionId = card.getAttribute('data-region');
+        let show = true;
+        if (searchTerm && !name.includes(searchTerm)) show = false;
+        if (selectedRegion && regionId !== selectedRegion) show = false;
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') filterCities();
+});
+document.getElementById('regionFilter').addEventListener('change', filterCities);
+</script>
+{% endblock %}

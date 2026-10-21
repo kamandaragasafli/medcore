@@ -68,60 +68,49 @@ def chatbot_query_api(request):
         company_id = data.get('company_id')
         session_id = data.get('session_id')
         
-        # Import Company model and database router
+        # Import Company model
         from subscription.models import Company
-        from subscription.db_router import set_tenant_db
         
-        # Validate company_id
-        if not company_id:
-            return JsonResponse({
-                'success': False,
-                'error': 'company_id is required'
-            }, status=400)
-        
-        # Get company from master database
-        try:
-            company = Company.objects.using('default').get(id=company_id)
-        except Company.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'error': 'Company not found'
-            }, status=404)
+        # Validate company_id (optional: falls back to the sole company)
+        if company_id:
+            try:
+                company = Company.objects.get(id=company_id)
+            except Company.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Company not found'
+                }, status=404)
+        else:
+            company = Company.objects.first()
+            if not company:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'company_id is required'
+                }, status=400)
         
         # Set company in request for compatibility
         request.company = company
         
-        # Set tenant database for this request
-        if company.db_name:
-            set_tenant_db(company.db_name)
-        else:
-            set_tenant_db('default')
-        
         # Route to appropriate query handler
-        try:
-            if query_type == 'doctor_debt':
-                return handle_doctor_debt_query(request, parameters)
-            elif query_type == 'doctor_info':
-                return handle_doctor_info_query(request, parameters)
-            elif query_type == 'prescription_count':
-                return handle_prescription_count_query(request, parameters)
-            elif query_type == 'monthly_report':
-                return handle_monthly_report_query(request, parameters)
-            elif query_type == 'doctor_list':
-                return handle_doctor_list_query(request, parameters)
-            elif query_type == 'recent_prescriptions':
-                return handle_recent_prescriptions_query(request, parameters)
-            elif query_type == 'sales_summary':
-                return handle_sales_summary_query(request, parameters)
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Unknown query_type: {query_type}'
-                }, status=400)
-        finally:
-            # Clear tenant database after query
-            from subscription.db_router import clear_tenant_db
-            clear_tenant_db()
+        if query_type == 'doctor_debt':
+            return handle_doctor_debt_query(request, parameters)
+        elif query_type == 'doctor_info':
+            return handle_doctor_info_query(request, parameters)
+        elif query_type == 'prescription_count':
+            return handle_prescription_count_query(request, parameters)
+        elif query_type == 'monthly_report':
+            return handle_monthly_report_query(request, parameters)
+        elif query_type == 'doctor_list':
+            return handle_doctor_list_query(request, parameters)
+        elif query_type == 'recent_prescriptions':
+            return handle_recent_prescriptions_query(request, parameters)
+        elif query_type == 'sales_summary':
+            return handle_sales_summary_query(request, parameters)
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'Unknown query_type: {query_type}'
+            }, status=400)
             
     except json.JSONDecodeError:
         return JsonResponse({

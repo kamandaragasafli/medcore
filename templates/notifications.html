@@ -2,194 +2,232 @@
 {% load static %}
 
 {% block title %}Bildirişlər{% endblock %}
+{% block active_notifications %}active{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/reports.css' %}">
 <style>
-    .notifications-page {
-        padding: 24px;
+.notifications-page {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.notifications-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.notifications-page .page-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+}
+
+.unread-badge {
+    color: var(--text-muted);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.filter-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.filter-tab {
+    padding: 12px 18px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.filter-tab:hover {
+    color: var(--primary);
+}
+
+.filter-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notification-card {
+    background: var(--surface);
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    min-width: 0;
+}
+
+.notification-card.unread {
+    border-left: 4px solid var(--primary);
+    background: var(--surface-muted);
+}
+
+.notification-card.important {
+    border-left: 4px solid #ef4444;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.notification-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.notification-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.notification-type {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.notification-type.info { background: rgba(59, 130, 246, 0.12); color: #60a5fa; }
+.notification-type.warning { background: rgba(245, 158, 11, 0.12); color: #fbbf24; }
+.notification-type.success { background: rgba(16, 185, 129, 0.12); color: #34d399; }
+.notification-type.error { background: rgba(239, 68, 68, 0.12); color: #f87171; }
+.notification-type.subscription { background: rgba(139, 92, 246, 0.12); color: #a78bfa; }
+
+.notification-message {
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+    word-break: break-word;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.notification-action-btn,
+.action-link {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mark-read-btn {
+    background: var(--surface-muted);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.action-link {
+    background: var(--primary);
+    color: #fff;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .notifications-page .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
     }
 
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-    }
-
-    .page-title {
-        font-size: 26px;
-        font-weight: 700;
-    }
-
-    .filter-tabs {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 24px;
-        border-bottom: 2px solid var(--border);
+    .notifications-page .page-title {
+        font-size: 22px;
     }
 
     .filter-tab {
-        padding: 12px 24px;
-        background: none;
-        border: none;
-        border-bottom: 3px solid transparent;
-        cursor: pointer;
-        font-weight: 600;
-        color: var(--text-muted);
-        transition: all 0.3s;
-    }
-
-    .filter-tab:hover {
-        color: var(--primary);
-    }
-
-    .filter-tab.active {
-        color: var(--primary);
-        border-bottom-color: var(--primary);
-    }
-
-    .notifications-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        padding: 10px 14px;
+        font-size: 13px;
     }
 
     .notification-card {
-        background: var(--surface);
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        position: relative;
-        transition: all 0.3s;
-    }
-
-    .notification-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .notification-card.unread {
-        border-left: 4px solid var(--primary);
-        background: var(--surface-muted);
-    }
-
-    .notification-card.important {
-        border-left: 4px solid #ef4444;
-    }
-
-    .notification-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
+        padding: 14px;
     }
 
     .notification-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--text);
-        margin-bottom: 4px;
-    }
-
-    .notification-meta {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        font-size: 12px;
-        color: var(--text-muted);
-    }
-
-    .notification-type {
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .notification-type.info {
-        background: rgba(59, 130, 246, 0.1);
-        color: #3b82f6;
-    }
-
-    .notification-type.warning {
-        background: rgba(245, 158, 11, 0.1);
-        color: #f59e0b;
-    }
-
-    .notification-type.success {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-    }
-
-    .notification-type.error {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-    }
-
-    .notification-type.subscription {
-        background: rgba(139, 92, 246, 0.1);
-        color: #8b5cf6;
-    }
-
-    .notification-message {
-        color: var(--text);
-        line-height: 1.6;
-        margin-bottom: 12px;
+        font-size: 15px;
     }
 
     .notification-actions {
-        display: flex;
-        gap: 12px;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .notification-action-btn {
-        padding: 8px 16px;
-        border-radius: 8px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 13px;
-        transition: all 0.3s;
+    .notification-action-btn,
+    .action-link,
+    .notification-actions form {
+        width: 100%;
     }
 
-    .mark-read-btn {
-        background: var(--dark-lighter);
-        color: var(--text);
-    }
-
-    .mark-read-btn:hover {
-        background: var(--primary);
-        color: white;
-    }
-
+    .notification-action-btn,
     .action-link {
-        padding: 8px 16px;
-        background: var(--primary);
-        color: white;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 13px;
-        display: inline-block;
+        justify-content: center;
     }
-
-    .action-link:hover {
-        opacity: 0.9;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text-muted);
-    }
-
-    .empty-state i {
-        font-size: 64px;
-        margin-bottom: 16px;
-        opacity: 0.5;
-    }
+}
 </style>
 
 <div class="notifications-page">
@@ -197,31 +235,23 @@
         <h1 class="page-title">
             <i class="fas fa-bell"></i> Bildirişlər
         </h1>
-        <div style="color: var(--text-muted);">
+        <div class="unread-badge">
             Oxunmamış: <strong style="color: var(--primary);">{{ unread_count }}</strong>
         </div>
     </div>
 
     <div class="filter-tabs">
-        <a href="?filter=all" class="filter-tab {% if filter_type == 'all' %}active{% endif %}">
-            Hamısı
-        </a>
-        <a href="?filter=unread" class="filter-tab {% if filter_type == 'unread' %}active{% endif %}">
-            Oxunmamış ({{ unread_count }})
-        </a>
-        <a href="?filter=read" class="filter-tab {% if filter_type == 'read' %}active{% endif %}">
-            Oxunmuş
-        </a>
-        <a href="?filter=important" class="filter-tab {% if filter_type == 'important' %}active{% endif %}">
-            Vacib
-        </a>
+        <a href="?filter=all" class="filter-tab {% if filter_type == 'all' %}active{% endif %}">Hamısı</a>
+        <a href="?filter=unread" class="filter-tab {% if filter_type == 'unread' %}active{% endif %}">Oxunmamış ({{ unread_count }})</a>
+        <a href="?filter=read" class="filter-tab {% if filter_type == 'read' %}active{% endif %}">Oxunmuş</a>
+        <a href="?filter=important" class="filter-tab {% if filter_type == 'important' %}active{% endif %}">Vacib</a>
     </div>
 
     <div class="notifications-list">
         {% for notification in notifications %}
         <div class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.is_important %}important{% endif %}">
             <div class="notification-header">
-                <div style="flex: 1;">
+                <div style="flex: 1; min-width: 0;">
                     <div class="notification-title">{{ notification.title }}</div>
                     <div class="notification-meta">
                         <span class="notification-type {{ notification.notification_type }}">
@@ -238,14 +268,14 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="notification-message">
                 {{ notification.message|linebreaks }}
             </div>
-            
+
             <div class="notification-actions">
                 {% if not notification.is_read %}
-                <form method="get" action="{% url 'core:notifications' %}" style="display: inline;">
+                <form method="get" action="{% url 'core:notifications' %}">
                     <input type="hidden" name="mark_read" value="{{ notification.id }}">
                     <button type="submit" class="notification-action-btn mark-read-btn">
                         <i class="fas fa-check"></i> Oxunmuş kimi işarələ
@@ -256,7 +286,7 @@
                     <i class="fas fa-check-circle"></i> Oxunub
                 </span>
                 {% endif %}
-                
+
                 {% if notification.action_url %}
                 <a href="{{ notification.action_url }}" class="action-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> {{ notification.action_text|default:"Daha ətraflı" }}
@@ -273,6 +303,4 @@
         {% endfor %}
     </div>
 </div>
-
 {% endblock %}
-

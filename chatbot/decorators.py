@@ -8,10 +8,15 @@ from django.contrib import messages
 
 def chatbot_required(view_func):
     """
-    Decorator to ensure user has Professional or Enterprise plan to access chatbot
+    Decorator to ensure chatbot is enabled and user has Professional or Enterprise plan
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        from django.conf import settings
+        if not getattr(settings, 'CHATBOT_ENABLED', False):
+            messages.info(request, 'AI Chatbot hazırda deaktivdir.')
+            return redirect('core:dashboard')
+
         if not hasattr(request, 'company') or not request.company:
             messages.error(request, 'Şirkət məlumatı tapılmadı.')
             return redirect('core:login')

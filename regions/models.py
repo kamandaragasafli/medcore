@@ -88,11 +88,27 @@ class Clinic(models.Model):
 class Specialization(models.Model):
     """İxtisas (Specialization) Model"""
     name = models.CharField(max_length=200, verbose_name="İxtisas Adı")
+    code = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name="Kod",
+        help_text="Qısa kod (məs: TE, GN, CA, SU)"
+    )
+    description = models.TextField(blank=True, null=True, verbose_name="Təsvir")
 
     class Meta:
         verbose_name = "İxtisas"
         verbose_name_plural = "İxtisaslar"
-        ordering = ['name']
+        ordering = ['code', 'name']
 
     def __str__(self):
+        if self.code:
+            return f"{self.code} — {self.name}"
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.code:
+            self.code = self.code.strip().upper()
+        super().save(*args, **kwargs)

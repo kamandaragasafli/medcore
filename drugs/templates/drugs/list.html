@@ -6,127 +6,144 @@
 {% block active_drugs %}active{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <div class="page-eyebrow">Dərmanlar</div>
-        <h1>Dərman Siyahısı</h1>
-        <p>Bütün dərmanların siyahısı</p>
+<div class="drugs-page">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Dərmanlar</div>
+            <h1>Dərman Siyahısı</h1>
+            <p>Bütün dərmanların siyahısı</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'drugs:add' %}" class="primary-btn">
+                <i class="fas fa-plus"></i> Yeni Dərman
+            </a>
+        </div>
     </div>
-    <div class="header-actions">
-        <a href="{% url 'drugs:add' %}" class="primary-btn">
-            <i class="fas fa-plus"></i> Yeni Dərman
-        </a>
-    </div>
-</div>
 
-<div class="drugs-container">
-    <div class="drugs-table-wrapper">
-        <table class="drugs-table">
-            <thead>
-                <tr>
-                    <th>Ad</th>
-                    <th>Tam Ad</th>
-                    <th>Buraxılış Forması</th>
-                    <th>Qiymət</th>
-                    <th>Komissiya</th>
-                    <th>Status</th>
-                    <th>Əməliyyat</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for drug in drugs %}
-                <tr>
-                    <td>
-                        <div class="drug-name">
-                            <i class="fas fa-pills" style="color: var(--primary);"></i>
-                            <strong>{{ drug.ad }}</strong>
-                        </div>
-                    </td>
-                    <td>{{ drug.tam_ad }}</td>
-                    <td>
-                        <span class="release-form-badge">{{ drug.get_buraxilis_formasi_display }}</span>
-                    </td>
-                    <td class="price">{{ drug.qiymet|floatformat:2 }} ₼</td>
-                    <td class="commission">{{ drug.komissiya|floatformat:2 }}</td>
-                    <td>
-                        <span class="status-badge {% if drug.is_active %}active{% else %}inactive{% endif %}">
-                            {% if drug.is_active %}Aktiv{% else %}Deaktiv{% endif %}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="table-actions">
-                            <a href="{% url 'drugs:detail' drug.id %}" class="action-btn view-btn" title="Bax">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <button class="action-btn edit-btn" title="Redaktə et">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn delete-btn" title="Sil">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="8" style="text-align: center; padding: 60px 20px;">
-                        <i class="fas fa-pills fa-3x" style="color: var(--border); margin-bottom: 16px;"></i>
-                        <p style="color: var(--text-muted); margin-bottom: 20px;">Hələ ki dərman yoxdur</p>
-                        <a href="{% url 'drugs:add' %}" class="primary-btn">
-                            <i class="fas fa-plus"></i> İlk Dərman Əlavə Et
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    {% if drugs.has_other_pages %}
-    <div class="pagination-container">
-        <div class="pagination-info">
-            Səhifə {{ drugs.number }} / {{ drugs.paginator.num_pages }}
+    <div class="drugs-container">
+        <div class="drugs-table-wrapper">
+            <table class="drugs-table">
+                <thead>
+                    <tr>
+                        <th>Ad</th>
+                        <th>Tam Ad</th>
+                        <th>Buraxılış Forması</th>
+                        <th>Qiymət</th>
+                        <th>Komissiya</th>
+                        <th>Status</th>
+                        <th>Əməliyyat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for drug in drugs %}
+                    <tr>
+                        <td data-label="Ad">
+                            <div class="drug-name">
+                                <i class="fas fa-pills"></i>
+                                <strong>{{ drug.ad }}</strong>
+                            </div>
+                        </td>
+                        <td data-label="Tam Ad">{{ drug.tam_ad }}</td>
+                        <td data-label="Forma">
+                            <span class="release-form-badge">{{ drug.get_buraxilis_formasi_display }}</span>
+                        </td>
+                        <td data-label="Qiymət" class="price">{{ drug.qiymet|floatformat:2 }} ₼</td>
+                        <td data-label="Komissiya" class="commission">{{ drug.komissiya|floatformat:2 }}</td>
+                        <td data-label="Status">
+                            <span class="status-badge {% if drug.is_active %}active{% else %}inactive{% endif %}">
+                                {% if drug.is_active %}Aktiv{% else %}Deaktiv{% endif %}
+                            </span>
+                        </td>
+                        <td data-label="Əməliyyat">
+                            <div class="table-actions">
+                                <a href="{% url 'drugs:detail' drug.id %}" class="action-btn view-btn" title="Bax">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="action-btn edit-btn" title="Redaktə et">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="action-btn delete-btn" title="Sil">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-row">
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-pills"></i>
+                                <p>Hələ ki dərman yoxdur</p>
+                                <a href="{% url 'drugs:add' %}" class="primary-btn">
+                                    <i class="fas fa-plus"></i> İlk Dərman Əlavə Et
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="pagination">
-            {% if drugs.has_previous %}
-            <a href="?page=1" class="pagination-btn">
-                <i class="fas fa-angle-double-left"></i>
-            </a>
-            <a href="?page={{ drugs.previous_page_number }}" class="pagination-btn">
-                <i class="fas fa-angle-left"></i>
-            </a>
-            {% endif %}
-            
-            <span class="pagination-current">{{ drugs.number }}</span>
-            
-            {% if drugs.has_next %}
-            <a href="?page={{ drugs.next_page_number }}" class="pagination-btn">
-                <i class="fas fa-angle-right"></i>
-            </a>
-            <a href="?page={{ drugs.paginator.num_pages }}" class="pagination-btn">
-                <i class="fas fa-angle-double-right"></i>
-            </a>
-            {% endif %}
+
+        {% if drugs.has_other_pages %}
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Səhifə {{ drugs.number }} / {{ drugs.paginator.num_pages }}
+            </div>
+            <div class="pagination">
+                {% if drugs.has_previous %}
+                <a href="?page=1" class="pagination-btn"><i class="fas fa-angle-double-left"></i></a>
+                <a href="?page={{ drugs.previous_page_number }}" class="pagination-btn"><i class="fas fa-angle-left"></i></a>
+                {% endif %}
+                <span class="pagination-current">{{ drugs.number }}</span>
+                {% if drugs.has_next %}
+                <a href="?page={{ drugs.next_page_number }}" class="pagination-btn"><i class="fas fa-angle-right"></i></a>
+                <a href="?page={{ drugs.paginator.num_pages }}" class="pagination-btn"><i class="fas fa-angle-double-right"></i></a>
+                {% endif %}
+            </div>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 <style>
+.drugs-page {
+    width: 100%;
+    min-width: 0;
+}
+
+.drugs-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.drugs-page .header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .drugs-container {
     background: var(--surface);
     border-radius: 16px;
     border: 1px solid var(--border);
     overflow: hidden;
+    min-width: 0;
 }
 
 .drugs-table-wrapper {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .drugs-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 720px;
 }
 
 .drugs-table thead {
@@ -134,23 +151,27 @@
 }
 
 .drugs-table th {
-    padding: 16px 20px;
+    padding: 14px 16px;
     text-align: left;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-muted);
     border-bottom: 2px solid var(--border);
     white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .drugs-table td {
-    padding: 16px 20px;
+    padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     font-size: 14px;
+    color: var(--text);
+    vertical-align: middle;
 }
 
 .drugs-table tbody tr:hover {
-    background: var(--surface-hover);
+    background: var(--surface-muted);
 }
 
 .drug-name {
@@ -160,11 +181,12 @@
 }
 
 .drug-name i {
-    font-size: 16px;
+    color: var(--primary);
+    flex-shrink: 0;
 }
 
 .release-form-badge {
-    padding: 4px 12px;
+    padding: 4px 10px;
     background: var(--surface-muted);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -174,18 +196,13 @@
 }
 
 .price,
-.commission,
-.final-price {
+.commission {
     font-weight: 600;
-}
-
-.final-price {
-    color: var(--primary);
-    font-size: 15px;
+    white-space: nowrap;
 }
 
 .status-badge {
-    padding: 4px 12px;
+    padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
@@ -193,61 +210,60 @@
 }
 
 .status-badge.active {
-    background: #d1fae5;
-    color: #065f46;
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
 }
 
 .status-badge.inactive {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
 }
 
 .table-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
-.action-btn {
-    width: 32px;
-    height: 32px;
+.drugs-page .action-btn {
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text-muted);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
+    text-decoration: none;
+    flex-shrink: 0;
+    padding: 0;
 }
 
-.action-btn:hover {
-    transform: translateY(-2px);
+.view-btn:hover { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.edit-btn:hover { background: #10b981; border-color: #10b981; color: #fff; }
+.delete-btn:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
 }
 
-.view-btn:hover {
-    background: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
-}
-
-.edit-btn:hover {
-    background: #10b981;
-    border-color: #10b981;
-    color: white;
-}
-
-.delete-btn:hover {
-    background: #ef4444;
-    border-color: #ef4444;
-    color: white;
+.empty-state i {
+    font-size: 42px;
+    margin-bottom: 12px;
+    opacity: 0.5;
 }
 
 .pagination-container {
-    padding: 20px;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
     border-top: 1px solid var(--border);
 }
 
@@ -269,43 +285,110 @@
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
     text-decoration: none;
 }
 
 .pagination-btn:hover {
     background: var(--primary);
     border-color: var(--primary);
-    color: white;
+    color: #fff;
 }
 
 .pagination-current {
-    padding: 8px 16px;
+    padding: 8px 14px;
     background: var(--primary);
-    color: white;
+    color: #fff;
     border-radius: 8px;
     font-weight: 600;
 }
 
 @media (max-width: 768px) {
+    .drugs-page .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .drugs-page .header-actions .primary-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
     .drugs-table {
-        font-size: 12px;
+        min-width: 0;
     }
-    
-    .drugs-table th,
+
+    .drugs-table thead {
+        display: none;
+    }
+
+    .drugs-table,
+    .drugs-table tbody,
+    .drugs-table tr,
     .drugs-table td {
-        padding: 12px;
+        display: block;
+        width: 100%;
     }
-    
+
+    .drugs-table tbody tr {
+        padding: 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .drugs-table tbody tr:not(.empty-row):hover {
+        background: transparent;
+    }
+
+    .drugs-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: none;
+        text-align: right;
+    }
+
+    .drugs-table td::before {
+        content: attr(data-label);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    .drugs-table td[data-label="Ad"] {
+        padding-bottom: 12px;
+        margin-bottom: 4px;
+        border-bottom: 1px dashed var(--border);
+    }
+
+    .drugs-table td[data-label="Əməliyyat"] {
+        justify-content: flex-end;
+        padding-top: 12px;
+    }
+
+    .drugs-table td[data-label="Əməliyyat"]::before {
+        margin-right: auto;
+    }
+
+    .empty-row td {
+        display: block;
+        text-align: center;
+    }
+
+    .empty-row td::before {
+        display: none;
+    }
+
     .pagination-container {
         flex-direction: column;
-        gap: 16px;
+        text-align: center;
     }
 }
 </style>
 {% endblock %}
-

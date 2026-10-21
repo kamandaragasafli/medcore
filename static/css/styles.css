@@ -103,10 +103,15 @@
 
         /* Main Content */
         .top-content {
-            flex: 1;
             margin-left: 250px;
             padding: 20px;
             transition: all 0.3s ease;
+            width: calc(100% - 250px);
+            max-width: calc(100% - 250px);
+            min-width: 0;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            flex: none;
         }
 
         .topbar {

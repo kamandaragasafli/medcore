@@ -16,20 +16,6 @@
     </div>
 </div>
 
-{% if messages %}
-<div class="page-messages">
-    {% for message in messages %}
-    <div class="page-message page-message-{{ message.tags }}">
-        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
-        <span>{{ message }}</span>
-        <button onclick="this.parentElement.remove()" class="message-close">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-
 <div class="form-container">
     <form method="post" class="drug-form">
         {% csrf_token %}

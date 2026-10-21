@@ -21,15 +21,6 @@
         </div>
     </div>
 
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}" style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background: {% if message.tags == 'success' %}#dcfce7{% elif message.tags == 'error' %}#fee2e2{% else %}#dbeafe{% endif %}; color: {% if message.tags == 'success' %}#15803d{% elif message.tags == 'error' %}#991b1b{% else %}#1e40af{% endif %};">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <!-- Form Section -->
     <div class="form-container" style="max-width: 700px; margin: 0 auto;">
         <div class="form-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px;">

@@ -1,18 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Qeydiyyat Əlavə Et - MedAdmin{% endblock %}
+{% block title %}Satış Əlavə Et - MedAdmin{% endblock %}
 
-{% block active_prescriptions %}active{% endblock %}
+{% block active_add_sale %}active{% endblock %}
 
 {% block content %}
 <div class="prescription-container">
     <div class="prescription-layout">
-
-        <!-- Left Side -->
         <div class="prescription-form-section">
             <div class="form-card">
-
                 <div class="form-header">
                     <h2>💰 Satış Əlavə Et</h2>
                 </div>
@@ -20,7 +17,6 @@
                 <form method="post" id="saleForm">
                     {% csrf_token %}
 
-                    <!-- REGION -->
                     <div class="form-group">
                         <label for="region_id">Bölgə *</label>
                         <select id="region_id" name="region_id" class="form-select" required>
@@ -31,13 +27,11 @@
                         </select>
                     </div>
 
-                    <!-- DATE -->
-                    <div class="form-group" style="width: 200px;">
+                    <div class="form-group form-group-date">
                         <label for="date">Tarix *</label>
                         <input type="date" id="date" name="date" class="form-input" required value="{% now 'Y-m-d' %}">
                     </div>
 
-                    <!-- DRUGS -->
                     <div class="form-section-label">Dərmanlar</div>
 
                     <div class="drugs-list-container">
@@ -48,10 +42,9 @@
                                         <div class="drug-name">{{ drug.ad }}</div>
                                         <div class="drug-meta">Qiymət: {{ drug.yekun_qiymet }} ₼</div>
                                     </div>
-
                                     <div class="drug-input">
-                                        <input type="number" 
-                                            name="drug_{{ drug.id }}" 
+                                        <input type="number"
+                                            name="drug_{{ drug.id }}"
                                             min="0" step="1"
                                             class="drug-qty-input">
                                     </div>
@@ -60,26 +53,17 @@
                         </div>
                     </div>
 
-                    <!-- ACTIONS -->
                     <div class="form-actions">
                         <button type="submit" class="btn-save">
                             <i class="fas fa-save"></i> Yadda Saxla
                         </button>
-
-                        <button type="button" class="btn-delete" onclick="resetSaleForm()">
-                            <i class="fas fa-trash"></i> Sil
-                        </button>
-
                         <div class="selected-count">
                             <span id="selectedCount">0</span>
                         </div>
                     </div>
-
                 </form>
-
             </div>
         </div>
-
     </div>
 </div>
 
@@ -87,27 +71,31 @@
 .prescription-container {
     max-width: 1600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 0;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .prescription-layout {
     display: grid;
-    grid-template-columns: 1fr 450px;
+    grid-template-columns: 1fr;
     gap: 24px;
+    min-width: 0;
 }
 
-/* Left Side - Form */
 .prescription-form-section {
     background: var(--surface);
     border-radius: 16px;
     border: 1px solid var(--border);
     overflow: hidden;
+    min-width: 0;
 }
 
 .form-card {
-    
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .form-header {
@@ -129,6 +117,7 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .form-section-label {
@@ -140,19 +129,13 @@
     letter-spacing: 0.5px;
 }
 
-.form-section-label:first-child {
-    margin-top: 0;
-}
-.form-row-2 {
-    display: grid;
-    grid-template-columns: 1fr 200px;
-    gap: 16px;
-    align-items: start;  /* Hər iki input eyni yerdən başlayacaq */
-}
-
-
 .form-group {
     margin-bottom: 16px;
+    min-width: 0;
+}
+
+.form-group-date {
+    max-width: 220px;
 }
 
 .form-group label {
@@ -164,9 +147,9 @@
 }
 
 .form-select,
-.form-input,
-.form-textarea {
+.form-input {
     width: 100%;
+    max-width: 100%;
     padding: 10px 14px;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -174,37 +157,22 @@
     color: var(--text);
     background: var(--surface);
     transition: all 0.2s;
+    box-sizing: border-box;
 }
 
 .form-select:focus,
-.form-input:focus,
-.form-textarea:focus {
+.form-input:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.form-select.loading {
-    opacity: 0.7;
-    cursor: progress;
-}
-
-.form-textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-/* Drugs List */
 .drugs-list-container {
     margin: 16px 0;
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 300px;
-}
-
-.drugs-search {
-    margin-bottom: 12px;
+    min-height: 0;
 }
 
 .drugs-list {
@@ -212,16 +180,6 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 8px;
-}
-
-.drug-item {
-    margin-bottom: 4px;
-}
-
-.helper-text {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 6px;
 }
 
 .drug-item {
@@ -244,12 +202,14 @@
 
 .drug-info {
     flex: 1;
+    min-width: 0;
 }
 
 .drug-name {
     font-size: 14px;
     font-weight: 600;
     color: var(--text);
+    word-break: break-word;
 }
 
 .drug-meta {
@@ -262,6 +222,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .drug-qty-input {
@@ -272,8 +233,8 @@
     font-weight: 600;
     text-align: center;
     background: var(--surface-muted);
-    color: var(--text);  
-    
+    color: var(--text);
+    box-sizing: border-box;
 }
 
 .drug-qty-input:focus {
@@ -282,12 +243,6 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-.qty-unit {
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-/* Form Actions */
 .form-actions {
     display: flex;
     gap: 12px;
@@ -297,8 +252,7 @@
     border-top: 1px solid var(--border);
 }
 
-.btn-save,
-.btn-delete {
+.btn-save {
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 600;
@@ -309,29 +263,16 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-}
-
-.btn-save {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     flex: 1;
+    justify-content: center;
 }
 
 .btn-save:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-}
-
-.btn-delete {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.btn-delete:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
 }
 
 .selected-count {
@@ -346,122 +287,66 @@
     text-align: center;
 }
 
-/* Right Side - Recent Prescriptions */
-.recent-prescriptions-section {
-    background: var(--surface);
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    overflow: hidden;
-    height: calc(100vh - 140px);
-    display: flex;
-    flex-direction: column;
-}
-
-.recent-card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.recent-header {
-    padding: 20px 24px;
-    background: var(--surface-muted);
-    border-bottom: 1px solid var(--border);
-}
-
-.recent-header h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.recent-table-wrapper {
-    flex: 1;
-    overflow-y: auto;
-}
-
-.recent-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.recent-table thead {
-    position: sticky;
-    top: 0;
-    background: var(--surface-muted);
-    z-index: 1;
-}
-
-.recent-table th {
-    padding: 12px 16px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 12px;
-    color: var(--text-muted);
-    border-bottom: 2px solid var(--border);
-    white-space: nowrap;
-}
-
-.recent-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    color: var(--text);
-}
-
-.recent-table tbody tr:hover {
-    background: var(--surface-hover);
-}
-
-.badge-count {
-    display: inline-block;
-    padding: 3px 10px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.amount-cell {
-    font-weight: 700;
-    color: var(--primary);
-}
-
-@media (max-width: 1200px) {
-    .prescription-layout {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-card,
-    .recent-prescriptions-section {
-        height: auto;
-        min-height: 600px;
-    }
-}
-
 @media (max-width: 768px) {
     .prescription-container {
-        padding: 12px;
+        padding: 0;
     }
-    
+
+    .form-header {
+        padding: 16px;
+    }
+
+    .form-header h2 {
+        font-size: 18px;
+    }
+
+    .prescription-form-section form {
+        padding: 16px;
+    }
+
+    .form-group-date {
+        max-width: 100%;
+    }
+
+    .drug-item {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .drug-name {
+        font-size: 13px;
+    }
+
+    .drug-qty-input {
+        width: 68px;
+        padding: 8px;
+        font-size: 16px;
+    }
+
+    .form-actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .btn-save {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .selected-count {
+        width: 100%;
+        order: -1;
+    }
+}
+
+@media (max-width: 480px) {
     .form-actions {
         flex-direction: column;
     }
-    
-    .btn-save,
-    .btn-delete {
+
+    .selected-count {
+        order: 0;
         width: 100%;
-    }
-    
-    .recent-table {
-        font-size: 11px;
-    }
-    
-    .recent-table th,
-    .recent-table td {
-        padding: 8px;
     }
 }
 </style>
@@ -469,34 +354,34 @@
 <script>
 function updateSelectedCount() {
     let total = 0;
-    const inputs = document.querySelectorAll(".drug-qty-input");
-
-    inputs.forEach(input => {
-        let v = parseInt(input.value);
-        if (v > 0) total += v;
+    document.querySelectorAll(".drug-qty-input").forEach(input => {
+        const v = parseInt(input.value, 10);
+        const parent = input.closest(".drug-item");
+        if (v > 0) {
+            total += v;
+            if (parent) parent.classList.add("selected");
+        } else if (parent) {
+            parent.classList.remove("selected");
+        }
     });
-
     document.getElementById("selectedCount").textContent = total;
 }
 
-// input dəyişdikdə say dəyişsin
-document.querySelector(".drugs-list").addEventListener("input", updateSelectedCount);
-
-// Form reset
-function resetSaleForm() {
-    if (confirm("Form sıfırlansın?")) {
-        document.getElementById("saleForm").reset();
-        updateSelectedCount();
+document.querySelector(".drugs-list").addEventListener("input", function(e) {
+    if (!e.target.classList.contains("drug-qty-input")) return;
+    if (e.target.value && parseInt(e.target.value, 10) < 0) {
+        e.target.value = 0;
     }
-}
+    updateSelectedCount();
+});
+
+updateSelectedCount();
 </script>
 
 {% if messages %}
 <script>
-// Auto-scroll to top to see messages
 window.scrollTo({ top: 0, behavior: 'smooth' });
 </script>
 {% endif %}
 
 {% endblock %}
-

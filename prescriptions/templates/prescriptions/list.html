@@ -202,7 +202,7 @@
     <!-- HEADER -->
     <div class="page-header">
         <h1 class="page-title">Resept Qeydiyyatları</h1>
-        <a href="{% url 'prescriptions:export_excel' %}?{{ request.GET.urlencode }}" class="export-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #10b981; color: white; border-radius: 8px; font-weight: 500; transition: all 0.3s;">
+        <a href="{% url 'prescriptions:export_excel' %}" id="export-excel-btn" class="export-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #10b981; color: white; border-radius: 8px; font-weight: 500; transition: all 0.3s;">
             <i class="fas fa-file-excel"></i> Excel Export
         </a>
     </div>
@@ -339,6 +339,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', submitFilters);
     resetBtn.addEventListener('click', resetFilters);
+
+    const exportBtn = document.getElementById('export-excel-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!regionSelect.value) {
+                alert('Excel üçün əvvəlcə bölgə seçin.');
+                return;
+            }
+            const params = new URLSearchParams(new FormData(form));
+            params.delete('csrfmiddlewaretoken');
+            window.location.href = exportBtn.getAttribute('href') + '?' + params.toString();
+        });
+    }
 });
 </script>
     

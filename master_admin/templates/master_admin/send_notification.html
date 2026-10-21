@@ -10,16 +10,6 @@
     <p style="color: #666;">Şirkətlərə bildiriş göndərin</p>
 </div>
 
-{% if messages %}
-<div style="margin-bottom: 20px;">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" style="padding: 12px; border-radius: 8px; margin-bottom: 10px;">
-        {{ message }}
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-
 <div class="master-card">
     <form method="post" id="notificationForm">
         {% csrf_token %}

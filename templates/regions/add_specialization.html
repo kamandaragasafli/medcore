@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - Yeni İxtisas{% endblock %}
+
+{% block active_specializations %}active{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">İxtisaslar</div>
+            <h1>Yeni İxtisas Əlavə Et</h1>
+            <p>Ad və qısa kod daxil edin (məs: TE, GN, NP)</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'regions:specialization_list' %}" class="ghost-btn" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i>
+                Geri
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container" style="max-width: 600px; margin: 0 auto;">
+        <div class="form-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px;">
+            <form method="POST" action="{% url 'regions:add_specialization' %}">
+                {% csrf_token %}
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Kod <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="code"
+                        value="{{ code|default:'' }}"
+                        class="form-input"
+                        placeholder="Məsələn: TE, GN, NP"
+                        required
+                        maxlength="20"
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px; text-transform: uppercase;"
+                    >
+                    <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: 12px;">
+                        Unikal qısa kod (maksimum 10 simvol)
+                    </small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        İxtisas Adı <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="name"
+                        value="{{ name|default:'' }}"
+                        class="form-input"
+                        placeholder="Məsələn: Terapevt (Ümumi praktik həkim)"
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                    >
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Təsvir <span style="color: var(--text-muted); font-size: 12px;">(İstəyə bağlı)</span>
+                    </label>
+                    <textarea
+                        name="description"
+                        rows="3"
+                        class="form-input"
+                        placeholder="Qısa izah..."
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px; resize: vertical;"
+                    >{{ description|default:'' }}</textarea>
+                </div>
+
+                <div class="form-actions" style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+                    <a href="{% url 'regions:specialization_list' %}" class="ghost-btn" style="flex: 1; padding: 12px; text-align: center; text-decoration: none; border-radius: 8px; border: 1px solid var(--border); color: var(--text);">
+                        Ləğv et
+                    </a>
+                    <button type="submit" class="primary-btn" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                        <i class="fas fa-save"></i>
+                        Yadda Saxla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -21,15 +21,6 @@
         </div>
     </div>
 
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}" style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background: {% if message.tags == 'success' %}#dcfce7{% elif message.tags == 'error' %}#fee2e2{% else %}#dbeafe{% endif %}; color: {% if message.tags == 'success' %}#15803d{% elif message.tags == 'error' %}#991b1b{% else %}#1e40af{% endif %};">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <!-- Filter Section -->
     <div class="filter-section" style="background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
         <div class="filter-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">

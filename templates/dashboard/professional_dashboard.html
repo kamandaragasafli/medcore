@@ -312,6 +312,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const prescriptionChartData = {{ prescription_chart_data|safe|default:"[]" }};
     const prescriptionChartLabels = {{ prescription_chart_labels|safe|default:"[]" }};
     
+    // Dark-theme chart colors
+    const chartGrid = 'rgba(148, 163, 184, 0.12)';
+    const chartTick = '#94a3b8';
+    const darkScaleOptions = {
+        y: {
+            beginAtZero: true,
+            grid: { color: chartGrid, drawBorder: false },
+            ticks: { color: chartTick, padding: 8 },
+            border: { display: false }
+        },
+        x: {
+            grid: { display: false },
+            ticks: { color: chartTick, maxRotation: 0, autoSkipPadding: 12 },
+            border: { display: false }
+        }
+    };
+
     // Doctors sparkline
     new Chart(document.getElementById('sparkline-doctors'), {
         type: 'line',
@@ -319,8 +336,8 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: Array(12).fill(''),
             datasets: [{
                 data: doctorsTrendData.length > 0 ? doctorsTrendData : Array(12).fill({{ total_doctors }}),
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.15)',
                 fill: true,
                 borderWidth: 2
             }]
@@ -335,8 +352,8 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: Array(12).fill(''),
             datasets: [{
                 data: monthlyPrescriptionData.length > 0 ? monthlyPrescriptionData : Array(12).fill({{ prescriptions_last_30 }}),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderColor: '#34d399',
+                backgroundColor: 'rgba(52, 211, 153, 0.15)',
                 fill: true,
                 borderWidth: 2
             }]
@@ -351,8 +368,8 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: Array(12).fill(''),
             datasets: [{
                 data: monthlySalesData.length > 0 ? monthlySalesData : Array(12).fill({{ total_sales }}),
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderColor: '#fbbf24',
+                backgroundColor: 'rgba(251, 191, 36, 0.15)',
                 fill: true,
                 borderWidth: 2
             }]
@@ -367,8 +384,8 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: Array(12).fill(''),
             datasets: [{
                 data: monthlyRevenueData.length > 0 ? monthlyRevenueData : Array(12).fill(0),
-                borderColor: '#8b5cf6',
-                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderColor: '#a78bfa',
+                backgroundColor: 'rgba(167, 139, 250, 0.15)',
                 fill: true,
                 borderWidth: 2
             }]
@@ -388,10 +405,16 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Qeydiyyatlar',
                 data: prescriptionChartData.length > 0 ? prescriptionChartData : Array(30).fill(0),
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                pointBackgroundColor: '#38bdf8',
+                pointBorderColor: '#0b152c',
+                pointBorderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 5,
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                borderWidth: 2.5
             }]
         },
         options: {
@@ -401,10 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: { display: false },
                 tooltip: { mode: 'index', intersect: false }
             },
-            scales: {
-                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                x: { grid: { display: false } }
-            }
+            scales: darkScaleOptions
         }
     });
 });

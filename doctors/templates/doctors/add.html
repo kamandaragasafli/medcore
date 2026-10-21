@@ -20,16 +20,6 @@
 </div>
 
 <div class="panel">
-    {% if messages %}
-    <div class="form-messages">
-        {% for message in messages %}
-        <div class="form-message form-message-{{ message.tags }}">
-            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
-            <span>{{ message }}</span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
     
     <form method="post" class="doctor-form" id="doctorForm">
         {% csrf_token %}
@@ -47,9 +37,12 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="gender">Cinsiyyət</label>
-                    <input type="text" id="gender-display" class="form-control" readonly placeholder="Ad soyada görə avtomatik təyin olunur (ilk sözün sonu: a → Qadın, v → Kişi)">
-                    <span class="help-text">Ad soyada görə avtomatik: məs. Həmidova Ayşə → Qadın</span>
+                    <label for="gender">Cinsiyyət <span class="required">*</span></label>
+                    <select id="gender" name="gender" class="form-control" required>
+                        <option value="">Seçin...</option>
+                        <option value="male">Kişi</option>
+                        <option value="female">Qadın</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -124,7 +117,7 @@
                     <select id="ixtisas" name="ixtisas" class="form-control" required>
                         <option value="">Seçin...</option>
                         {% for spec in specializations %}
-                        <option value="{{ spec.id }}">{{ spec.name }}</option>
+                        <option value="{{ spec.id }}">{% if spec.code %}{{ spec.code }} — {% endif %}{{ spec.name }}</option>
                         {% endfor %}
                     </select>
                 </div>

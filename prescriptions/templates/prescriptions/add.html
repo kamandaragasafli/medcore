@@ -42,7 +42,7 @@
                         </div>
                     
                     <!-- Date Selection -->
-                    <div class="form-group" style="width: 200px;">
+                    <div class="form-group form-group-date">
                         <label for="date">Tarix *</label>
                         <input type="date" id="date" name="date" class="form-input" required value="{% now 'Y-m-d' %}">
                     </div>
@@ -78,9 +78,6 @@
                     <div class="form-actions">
                         <button type="submit" class="btn-save">
                             <i class="fas fa-save"></i> Yadda Saxla
-                        </button>
-                        <button type="button" class="btn-delete" onclick="resetForm()">
-                            <i class="fas fa-trash"></i> Sil
                         </button>
                         <div class="selected-count">
                             <span id="selectedCount">0</span>
@@ -152,7 +149,10 @@
 .prescription-container {
     max-width: 1600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 0;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .prescription-layout {
@@ -160,6 +160,7 @@
     grid-template-columns: 1fr;
     /* grid-template-columns: 1fr 450px; */ /* Commented out - recent prescriptions section hidden */
     gap: 24px;
+    min-width: 0;
 }
 
 /* Left Side - Form */
@@ -168,12 +169,14 @@
     border-radius: 16px;
     border: 1px solid var(--border);
     overflow: hidden;
+    min-width: 0;
 }
 
 .form-card {
     
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .form-header {
@@ -195,6 +198,7 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .form-section-label {
@@ -211,14 +215,21 @@
 }
 .form-row-2 {
     display: grid;
-    grid-template-columns: 1fr 200px;
+    grid-template-columns: minmax(0, 1fr) 200px;
     gap: 16px;
-    align-items: start;  /* Hər iki input eyni yerdən başlayacaq */
+    align-items: start;
+    min-width: 0;
+}
+
+.form-group-date {
+    width: 100%;
+    min-width: 0;
 }
 
 
 .form-group {
     margin-bottom: 16px;
+    min-width: 0;
 }
 
 .form-group label {
@@ -233,6 +244,7 @@
 .form-input,
 .form-textarea {
     width: 100%;
+    max-width: 100%;
     padding: 10px 14px;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -240,6 +252,7 @@
     color: var(--text);
     background: var(--surface);
     transition: all 0.2s;
+    box-sizing: border-box;
 }
 
 .form-select:focus,
@@ -375,8 +388,7 @@
     border-top: 1px solid var(--border);
 }
 
-.btn-save,
-.btn-delete {
+.btn-save {
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 600;
@@ -387,9 +399,6 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-}
-
-.btn-save {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
@@ -399,17 +408,6 @@
 .btn-save:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-}
-
-.btn-delete {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.btn-delete:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
 }
 
 .selected-count {
@@ -515,22 +513,70 @@
     .form-card,
     .recent-prescriptions-section {
         height: auto;
-        min-height: 600px;
+        min-height: 0;
     }
 }
 
 @media (max-width: 768px) {
     .prescription-container {
-        padding: 12px;
+        padding: 0;
+    }
+
+    .form-header {
+        padding: 16px;
+    }
+
+    .form-header h2 {
+        font-size: 18px;
+    }
+
+    .prescription-form-section form {
+        padding: 16px;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .form-group-date {
+        width: 100%;
+    }
+
+    .drugs-list-container {
+        min-height: 0;
+    }
+
+    .drug-item {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .drug-name {
+        font-size: 13px;
+        word-break: break-word;
+    }
+
+    .drug-qty-input {
+        width: 68px;
+        padding: 8px;
+        font-size: 16px; /* prevents iOS zoom */
     }
     
     .form-actions {
-        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 10px;
     }
     
-    .btn-save,
-    .btn-delete {
+    .btn-save {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 0;
+    }
+
+    .selected-count {
         width: 100%;
+        order: -1;
     }
     
     .recent-table {
@@ -540,6 +586,17 @@
     .recent-table th,
     .recent-table td {
         padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .selected-count {
+        order: 0;
+        width: 100%;
     }
 }
 </style>
@@ -688,20 +745,7 @@ document.querySelector('.drugs-list').addEventListener('input', function(e) {
 
 
 // ------------------------------------------
-// 5) RESET FORM
-// ------------------------------------------
-function resetForm() {
-    if (confirm('Formu sıfırlamaq istədiyinizə əminsiniz?')) {
-        prescriptionForm.reset();
-        resetDoctorSelect();
-        document.querySelectorAll('.drug-item').forEach(i => i.classList.remove('selected'));
-        updateSelectedCount();
-    }
-}
-
-
-// ------------------------------------------
-// 6) Submit zamanı dərman və tarix yoxlanışı
+// 5) Submit zamanı dərman və tarix yoxlanışı
 // ------------------------------------------
 prescriptionForm.addEventListener('submit', function(e) {
     let hasValue = false;
@@ -741,7 +785,7 @@ prescriptionForm.addEventListener('submit', function(e) {
 
 
 // ------------------------------------------
-// 7) Səhifə açılarkən region və həkim bərpa olunsun
+// 6) Səhifə açılarkən region və həkim bərpa olunsun
 // ------------------------------------------
 window.addEventListener('DOMContentLoaded', function() {
     const savedRegion = localStorage.getItem('saved_region');

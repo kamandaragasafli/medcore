@@ -155,7 +155,7 @@
                                     {{ row.doctor.ad }}
                                 </a>
                             </td>
-                            <td>{{ row.doctor.ixtisas.name|default:"-" }}</td>
+                            <td>{% if row.doctor.ixtisas %}{{ row.doctor.ixtisas.code|default:row.doctor.ixtisas.name }}{% else %}-{% endif %}</td>
                             <td>{{ row.doctor.category }}</td>
                             <td>{{ row.doctor.get_degree_display }}</td>
                             <td class="amount">{{ row.evvelki_borc|floatformat:2 }}</td>
@@ -197,15 +197,19 @@
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    padding: 24px;
+    padding: 24px 0;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: visible;
 }
 
 /* Ensure all child elements take full width */
 .reports-container > * {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
 }
 
@@ -288,10 +292,11 @@
 
 .filters-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
     margin-bottom: 16px;
     width: 100%;
+    min-width: 0;
 }
 
 .filter-item {
@@ -378,10 +383,11 @@ select.form-control {
 /* Stats Summary */
 .stats-summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
     width: 100%;
+    min-width: 0;
     box-sizing: border-box;
 }
 
@@ -430,19 +436,27 @@ select.form-control {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 24px;
-    overflow: hidden;
+    overflow: visible;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .table-wrapper {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }
 
 .reports-table {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
     border-collapse: collapse;
-    min-width: 1200px;
 }
 
 .reports-table thead {
@@ -558,35 +572,59 @@ code {
 /* Responsive */
 @media (max-width: 1200px) {
     .filters-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .stats-summary {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 768px) {
     .reports-container {
-        padding: 16px;
+        padding: 0;
+    }
+
+    .reports-title {
+        font-size: 22px;
+    }
+
+    .reports-subtitle {
+        font-size: 13px;
+        word-break: break-word;
     }
     
     .reports-header {
         flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
     }
     
     .header-actions {
         width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .header-actions form {
+        display: contents;
     }
     
     .btn-close-report,
     .btn-export {
-        flex: 1;
+        width: 100%;
         justify-content: center;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .filters-card {
+        padding: 14px;
+        margin-bottom: 16px;
     }
     
     .filters-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
     }
     
     .filters-actions {
@@ -597,6 +635,62 @@ code {
     .btn-search {
         width: 100%;
         justify-content: center;
+    }
+
+    .stats-summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card {
+        padding: 14px;
+    }
+
+    .stat-value {
+        font-size: 20px;
+    }
+
+    .table-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        padding-bottom: 4px;
+    }
+
+    .reports-table {
+        min-width: 900px;
+    }
+
+    .reports-table th,
+    .reports-table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .rotated-header {
+        height: 100px;
+    }
+
+    .rotated-text {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
     }
 }
 </style>

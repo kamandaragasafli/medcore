@@ -10,12 +10,14 @@ urlpatterns = [
     path('', include('core.urls')),
     path('doctors/', include('doctors.urls')),
     path('drugs/', include('drugs.urls')),
-    path('chatbot/', include('chatbot.urls')),  # AI Chatbot (Professional/Enterprise only)  # Drugs/Medicines Management
     path('prescriptions/', include('prescriptions.urls')),  # Prescription/Recipe Management
     path('regions/', include('regions.urls')),
     path('reports/', include('reports.urls')),
     path('sales/', include('sales.urls')),
 ]
+
+if getattr(settings, 'CHATBOT_ENABLED', False):
+    urlpatterns.append(path('chatbot/', include('chatbot.urls')))
 
 # Media files in development
 if settings.DEBUG:

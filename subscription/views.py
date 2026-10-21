@@ -7,7 +7,6 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from .models import Company, SubscriptionPlan, Subscription, UserProfile, ContractAgreement
-from .utils import generate_db_name, create_tenant_database
 from datetime import timedelta
 
 
@@ -23,7 +22,7 @@ def subscription_plans(request):
 
 @transaction.atomic
 def register_company(request):
-    """Company registration with simplified form - requires plan selection first"""
+    """Company registration - single company per deployment"""
     if request.method == 'POST':
         # Get form data
         company_name = request.POST.get('company_name')
@@ -58,33 +57,31 @@ def register_company(request):
             return redirect('subscription:plans')
         
         try:
-            # Create Company
-            slug = slugify(company_name)
-            # Ensure unique slug
+            if Company.objects.exists():
+                messages.error(
+                    request,
+                    'Bu sistemdə artıq şirkət qeydiyyatdan keçib. '
+                    'Yeni müştəri üçün ayrı nüsxə quraşdırın.'
+                )
+                return redirect('subscription:plans')
+
+            slug = slugify(company_name) or 'company'
             base_slug = slug
             counter = 1
             while Company.objects.filter(slug=slug).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
-            
-            # Generate unique database name
-            db_name = generate_db_name(slug)
-            
-            # Use username as email if no email provided
+
             email = f"{username}@medadmin.local"
-            
+
             company = Company.objects.create(
                 name=company_name,
                 slug=slug,
-                db_name=db_name,
                 email=email,
                 phone=company_phone,
                 is_active=True
             )
-            
-            # Create dedicated database for this company
-            create_tenant_database(company)
-            
+
             # Create User (Company Owner)
             user = User.objects.create_user(
                 username=username,

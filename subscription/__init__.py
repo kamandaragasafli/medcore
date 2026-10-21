@@ -1,2 +1,1 @@
-# Subscription App for Multi-tenant SaaS
-
+# Subscription / billing app (single-company deployment)

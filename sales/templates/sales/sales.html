@@ -1,156 +1,387 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
+
+{% block title %}Satışlar - MedAdmin{% endblock %}
 {% block active_sales %}active{% endblock %}
 
 {% block content %}
+<div class="sales-page">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Satışlar</div>
+            <h1 class="page-title">Aylıq Satışlar</h1>
+            <p>Bölgə və ay üzrə satış hesabatı</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'sales:sale_list' %}" class="secondary-btn">
+                <i class="fas fa-edit"></i> Satış qeydləri
+            </a>
+            <a href="{% url 'sales:add' %}" class="primary-btn">
+                <i class="fas fa-plus"></i> Satış Əlavə Et
+            </a>
+        </div>
+    </div>
 
-        <!-- Main Content -->
-        <div class="ayliq-main">
-            <!-- Mobile Header -->
-            <div class="mobile-header">
-                <button class="menu-toggle" id="menuToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="page-title">Aylıq Qeydiyyat</h1>
-                <button class="export-btn">
-                    <i class="fas fa-file-export"></i>
-                    <span>Export</span>
-                </button>
+    <form method="get" class="filter-card">
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label class="filter-label">Bölgə</label>
+                <select class="filter-select" name="region">
+                    <option value="" {% if not filters.region %}selected{% endif %}>Bölgə seçin</option>
+                    {% for region in regions %}
+                        <option value="{{ region.id }}" {% if filters.region == region.id|stringformat:"s" %}selected{% endif %}>
+                            {{ region.name }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
-
-            <!-- Desktop Header -->
-            <div class="page-header">
-                <h1 class="page-title">Aylıq Qeydiyyat</h1>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <a href="{% url 'sales:sale_list' %}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border); color: var(--text); text-decoration: none; font-weight: 500;">
-                        <i class="fas fa-edit"></i> Satış qeydləri
-                    </a>
-                    <button class="export-btn">
-                        <i class="fas fa-file-export"></i>
-                        Excel Export
-                    </button>
-                </div>
+            <div class="filter-group">
+                <label class="filter-label">Ay</label>
+                <select class="filter-select" name="month">
+                    <option value="" {% if not filters.month %}selected{% endif %}>Ay seçin</option>
+                    {% for month_value, month_label in months %}
+                        <option value="{{ month_value }}" {% if filters.month == month_value|stringformat:"s" %}selected{% endif %}>
+                            {{ month_label }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
+        </div>
+        <div class="filter-actions">
+            <a href="{% url 'sales:list' %}" class="filter-btn reset-btn">
+                <i class="fas fa-undo"></i> Təmizlə
+            </a>
+            <button type="submit" class="filter-btn apply-btn">
+                <i class="fas fa-search"></i> Axtar
+            </button>
+        </div>
+    </form>
 
-            <!-- Filter Section -->
-            <form method="get" class="filter-section">
-                <div class="filter-grid">
-                    <div class="filter-group">
-                        <label class="filter-label">Bölgə</label>
-                        <select class="filter-select" name="region">
-                            <option value="" {% if not filters.region %}selected{% endif %}>Bölgə seçin</option>
-                            {% for region in regions %}
-                                <option value="{{ region.id }}" {% if filters.region == region.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ region.name }}
-                                </option>
+    <div class="table-card">
+        <div class="table-header">
+            <h3 class="table-title">Aylıq Satış Məlumatları</h3>
+            <div class="table-info">{{ table_info }}</div>
+        </div>
+
+        <div class="table-scroll">
+            <table class="sales-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Bölgə</th>
+                        {% for drug in drugs %}
+                            <th class="drug-header">{{ drug.ad }}</th>
+                        {% endfor %}
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td class="region-cell">{{ row.region.name }}</td>
+                            {% for drug in drugs %}
+                                <td>{{ row.drugs|get_item:drug.ad|default:"0" }}</td>
                             {% endfor %}
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Ay</label>
-                        <select class="filter-select" name="month">
-                            <option value="" {% if not filters.month %}selected{% endif %}>Ay seçin</option>
-                            {% for month_value, month_label in months %}
-                                <option value="{{ month_value }}" {% if filters.month == month_value|stringformat:"s" %}selected{% endif %}>
-                                    {{ month_label }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="filter-actions">
-                    <a href="{% url 'sales:list' %}" class="filter-btn reset-btn">
-                        <i class="fas fa-undo"></i>
-                        Təmizlə
-                    </a>
-                    <button type="submit" class="filter-btn apply-btn">
-                        <i class="fas fa-search"></i>
-                        Axtar
-                    </button>
-                </div>
-            </form>
+                            <td class="total-amount">{{ row.total }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{{ drugs|length|add:'3' }}" class="empty-cell">
+                                Filtrə uyğun nəticə tapılmadı.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <!-- Table Container -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h3 class="table-title">Aylıq Qeydiyyat Məlumatları</h3>
-                    <div class="table-info">{{ table_info }}</div>
-                </div>
-
-                <div class="rotated-table-container">
-                    <table class="rotated-table">
-                        <thead>
-                            <tr>
-                                <th>№</th>
-                                <th>Bölgə</th>
-                    
-                                {% for drug in drugs %}
-                                    <th class="drug-header">{{ drug.ad }}</th>
-                                {% endfor %}
-                    
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                    
-                        <tbody>
-                            {% for row in data %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>{{ row.region.name }}</td>
-                    
-                                    {% for drug in drugs %}
-                                        <td>{{ row.drugs|get_item:drug.ad|default:"0" }}</td>
-                                    {% endfor %}
-                    
-                                    <td class="total-amount">{{ row.total }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="{{ drugs|length|add:'3' }}" style="padding:40px;color:#94a3b8;">
-                                        Filtrə uyğun nəticə tapılmadı.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    
-                </div>
-
-                <div class="table-footer">
-                    <div class="summary-info">
-                        <div class="summary-item">
-                            <div class="summary-value">{{ summary_total }}</div>
-                            <div class="summary-label">Ümumi Satış</div>
-                        </div>
-                    </div>
-                    <div class="pagination">
-                        <button class="page-btn" disabled>Əvvəl</button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn" disabled>Sonra</button>
-                    </div>
-                </div>
+        <div class="table-footer">
+            <div class="summary-item">
+                <div class="summary-value">{{ summary_total }}</div>
+                <div class="summary-label">Ümumi Satış</div>
             </div>
         </div>
     </div>
-<script src="main.js"></script>
-    <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        if (menuToggle && sidebar) {
-            menuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('active');
-            });
-        }
+</div>
 
-        document.querySelectorAll('.export-btn').forEach(btn => {
-            btn.addEventListener('click', function(event) {
-                event.preventDefault();
-                alert('Excel faylı yüklənəcək!');
-            });
-        });
-    </script>
+<style>
+.sales-page {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
 
+.sales-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding-bottom: 0;
+    border-bottom: none;
+}
 
+.sales-page .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px;
+}
 
-{% endblock content %}
+.sales-page .header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
+.sales-page .secondary-btn,
+.sales-page .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.filter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-muted);
+    color: var(--text);
+    box-sizing: border-box;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.filter-btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+
+.reset-btn {
+    background: var(--surface-muted);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.apply-btn {
+    background: var(--primary);
+    color: #fff;
+}
+
+.table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.table-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text);
+}
+
+.table-info {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.sales-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+.sales-table th,
+.sales-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text);
+}
+
+.sales-table thead th {
+    background: var(--surface-muted);
+    font-weight: 600;
+    color: var(--text-muted);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.sales-table th.drug-header {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-align: left;
+    padding: 8px 4px;
+    height: 110px;
+    vertical-align: bottom;
+}
+
+.sales-table .region-cell {
+    text-align: left;
+    font-weight: 600;
+}
+
+.sales-table .total-amount {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.sales-table tbody tr:hover {
+    background: var(--surface-muted);
+}
+
+.empty-cell {
+    padding: 40px !important;
+    color: var(--text-muted) !important;
+    text-align: center !important;
+}
+
+.table-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.summary-item {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summary-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.summary-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+    .sales-page .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sales-page .page-title {
+        font-size: 22px;
+    }
+
+    .sales-page .header-actions {
+        width: 100%;
+    }
+
+    .sales-page .secondary-btn,
+    .sales-page .primary-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .filter-card,
+    .table-card {
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .filter-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sales-table th.drug-header {
+        height: 90px;
+        font-size: 11px;
+    }
+
+    .sales-table th,
+    .sales-table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+}
+</style>
+{% endblock %}

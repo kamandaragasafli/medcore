@@ -171,7 +171,8 @@ else:
         }
     }
 
-# OpenAI Chatbot Integration
+# OpenAI Chatbot Integration (hidden until re-enabled)
+CHATBOT_ENABLED = os.environ.get('CHATBOT_ENABLED', 'False').lower() in ('1', 'true', 'yes')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')  # OpenAI API key
 OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-3.5-turbo')  # OpenAI model to use
 CHATBOT_API_KEY = os.environ.get('CHATBOT_API_KEY', '')  # For securing chatbot API endpoint

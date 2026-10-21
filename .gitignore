@@ -42,8 +42,7 @@ backups/
 # Production files
 *.pyc
 __pycache__/
-*.db
-*.sqlite3
+
 
 # Logs
 logs/

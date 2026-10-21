@@ -552,7 +552,8 @@ def create_backup(request):
     import io
     
     company = request.company
-    db_name = company.db_name
+    default_db = settings.DATABASES['default']
+    db_label = str(default_db.get('NAME', 'default'))
     
     try:
         # Create backup directory if it doesn't exist
@@ -565,13 +566,13 @@ def create_backup(request):
         
         # Create backup file name with timestamp (SQL format)
         timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
-        backup_filename = f'{db_name}_{timestamp}.sql'
+        backup_filename = f'{company.slug}_{timestamp}.sql'
         backup_path = backup_dir / backup_filename
         
         if USE_POSTGRESQL:
             # PostgreSQL backup using pg_dump
             try:
-                db_config = settings.DATABASES.get(db_name, settings.DATABASES['default'])
+                db_config = default_db
                 
                 # Use pg_dump command
                 pg_dump_cmd = [
@@ -579,7 +580,7 @@ def create_backup(request):
                     '-h', db_config.get('HOST', 'localhost'),
                     '-p', str(db_config.get('PORT', '5432')),
                     '-U', db_config.get('USER', ''),
-                    '-d', db_name,
+                    '-d', str(db_config.get('NAME', '')),
                     '--no-owner',
                     '--no-acl',
                     '-F', 'p',  # Plain text format
@@ -602,7 +603,7 @@ def create_backup(request):
                 # Write SQL dump to file
                 with open(backup_path, 'w', encoding='utf-8') as f:
                     f.write(f'-- PostgreSQL Database Backup\n')
-                    f.write(f'-- Database: {db_name}\n')
+                    f.write(f'-- Database: {db_label}\n')
                     f.write(f'-- Created: {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
                     f.write(f'-- Company: {company.name}\n\n')
                     f.write(result.stdout)
@@ -619,8 +620,8 @@ def create_backup(request):
                 messages.error(request, f'Backup xətası: {str(e)}')
                 return redirect('core:settings')
         else:
-            # SQLite backup
-            db_path = Path(settings.BASE_DIR) / 'tenant_databases' / f'{db_name}.sqlite3'
+            # SQLite backup (single default database)
+            db_path = Path(default_db['NAME'])
             
             if not db_path.exists():
                 messages.error(request, 'Verilənlər bazası tapılmadı!')
@@ -637,7 +638,7 @@ def create_backup(request):
                 with open(backup_path, 'w', encoding='utf-8') as f:
                     # Write header
                     f.write(f'-- SQLite Database Backup\n')
-                    f.write(f'-- Database: {db_name}\n')
+                    f.write(f'-- Database: {db_label}\n')
                     f.write(f'-- Created: {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
                     f.write(f'-- Company: {company.name}\n\n')
                     

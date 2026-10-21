@@ -553,7 +553,10 @@ def export_reports_excel(request):
 
         # İxtisas
         cell = ws.cell(row=row_num, column=col_num)
-        cell.value = row['doctor'].ixtisas.name if row['doctor'].ixtisas else '-'
+        if row['doctor'].ixtisas:
+            cell.value = row['doctor'].ixtisas.code or row['doctor'].ixtisas.name
+        else:
+            cell.value = '-'
         cell.font = cell_font
         cell.alignment = cell_alignment
         cell.border = border

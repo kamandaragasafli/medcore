@@ -6,28 +6,17 @@
 {% block active_add_payment %}active{% endblock %}
 
 {% block content %}
-<div class="doctor-content">
+<div class="doctor-content payment-page">
 
-    <!-- Mobile Header -->
-    <div class="mobile-header">
-        <button class="menu-toggle" id="menuToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h1 class="page-title">Ödəniş Əlavə Et</h1>
-    </div>
-
-    <!-- Desktop Header -->
     <div class="page-header">
         <h1 class="page-title">Ödəniş Əlavə Et</h1>
     </div>
 
-    <!-- Form Container -->
     <form method="POST" action="{% url 'doctors:add_payment' %}">
         {% csrf_token %}
-        
+
         <div class="form-container">
 
-            <!-- Ödəniş Məlumatlar -->
             <div class="form-section">
                 <h3 class="section-title">
                     <i class="fas fa-user"></i>
@@ -35,7 +24,6 @@
                 </h3>
 
                 <div class="form-grid">
-                    <!-- REGION -->
                     <div class="form-group">
                         <label class="form-label required">Bölgə</label>
                         <select class="form-select" name="region" id="regionSelect" required>
@@ -46,7 +34,6 @@
                         </select>
                     </div>
 
-                    <!-- DOCTOR -->
                     <div class="form-group">
                         <label class="form-label required">Həkim</label>
                         <select class="form-select" name="doctor" id="doctorSelect" required>
@@ -56,10 +43,8 @@
                 </div>
             </div>
 
-            <!-- Payment Fields -->
             <div class="form-section">
                 <div class="form-grid">
-
                     <div class="form-group">
                         <label class="form-label required">Ödəniş növü</label>
                         <select class="form-select" name="payment_type" required>
@@ -73,23 +58,19 @@
                         <label class="form-label">Məbləğ</label>
                         <input type="text" class="form-input" name="amount" placeholder="₼" required>
                     </div>
-
                 </div>
             </div>
 
-            <!-- DATE -->
             <div class="form-section">
                 <div class="form-grid">
-                    <div class="form-group" style="width: 460px;">
+                    <div class="form-group form-group-date">
                         <label class="form-label">Tarix</label>
                         <input type="date" class="form-input" name="date" value="{{ today|date:'Y-m-d' }}" required>
                     </div>
                 </div>
             </div>
 
-            <!-- Form Actions -->
             <div class="form-actions">
-                <a href="#" class="cancel-btn">Ləğv et</a>
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-save"></i>
                     Ödəniş Əlavə Et
@@ -99,11 +80,60 @@
         </div>
     </form>
 </div>
+
+<style>
+.payment-page .form-group-date {
+    max-width: 220px;
+    width: 100%;
+}
+
+.payment-page .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.payment-page .submit-btn {
+    width: auto;
+    min-width: 200px;
+}
+
+@media (max-width: 768px) {
+    .payment-page .page-header {
+        margin-bottom: 16px;
+    }
+
+    .payment-page .page-title {
+        font-size: 22px;
+    }
+
+    .payment-page .form-container {
+        padding: 16px;
+    }
+
+    .payment-page .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .payment-page .form-group-date {
+        max-width: 100%;
+    }
+
+    .payment-page .form-actions {
+        flex-direction: column;
+    }
+
+    .payment-page .submit-btn {
+        width: 100%;
+        min-width: 0;
+        justify-content: center;
+    }
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Bölgə seçiləndə AJAX ilə həkimləri yüklə
     document.getElementById("regionSelect").addEventListener("change", function () {
         const regionId = this.value;
         const doctorSelect = document.getElementById("doctorSelect");
