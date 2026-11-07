@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}MedAdmin - Dashboard{% endblock %}
+
+{% block active_dashboard %}active{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+<div class="page-header">
+    <div>
+        <div class="page-eyebrow">Dashboard</div>
+        <h1>Salam {{ user.username }}</h1>
+        <p>İdarə panelinə xoş gəlmisiniz 
+    </div>
+    <div class="header-actions">
+        {% if plan_type == 'enterprise' %}
+        <button class="ghost-btn" onclick="window.print()">
+            <i class="fas fa-print"></i> Çap Et
+        </button>
+        {% endif %}
+        <a href="{% url 'prescriptions:add' %}" class="primary-btn" style="text-decoration: none;">
+            <i class="fas fa-plus"></i> Yeni Qeydiyyat
+        </a>
+    </div>
+</div>
+
+{% include 'dashboard/professional_dashboard.html' %}
+
+{% endblock %}
+

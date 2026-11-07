@@ -1,0 +1,705 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Həkimlər - MedAdmin{% endblock %}
+
+{% block active_doctors %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="page-eyebrow">Həkimlər</div>
+        <h1>Həkim Siyahısı</h1>
+        <p>Bütün həkimlərin siyahısı</p>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'doctors:export_excel' %}" class="secondary-btn" title="Excel faylına ixrac et">
+            <i class="fas fa-file-excel"></i> Excel Yüklə
+        </a>
+        <a href="{% url 'doctors:add' %}" class="primary-btn">
+            <i class="fas fa-plus"></i> Yeni Həkim
+        </a>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <div>
+            <div class="panel-title">Həkimlər</div>
+            <div class="panel-subtitle">Cəmi: {{ total_doctors }} həkim | Səhifə {{ doctors.number }} / {{ doctors.paginator.num_pages }}</div>
+        </div>
+        <div class="search-bar" style="max-width: 300px;">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Həkim axtar..." id="doctorSearch">
+        </div>
+    </div>
+    
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-row">
+            <div class="filter-item">
+                <label>Bölgə</label>
+                <select id="filterRegion" class="filter-select">
+                    <option value="">Hamısı</option>
+                    {% for region in regions %}
+                    <option value="{{ region.name }}">{{ region.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label>İxtisas</label>
+                <select id="filterIxtisas" class="filter-select">
+                    <option value="">Hamısı</option>
+                    {% for ixtisas in specializations %}
+                    <option value="{{ ixtisas.name }}">{{ ixtisas.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label>Kateqoriya</label>
+                <select id="filterCategory" class="filter-select">
+                    <option value="">Hamısı</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label>Dərəcə</label>
+                <select id="filterDegree" class="filter-select">
+                    <option value="">Hamısı</option>
+                    <option value="VIP">VIP</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="III">III</option>
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label>Klinika</label>
+                <select id="filterClinic" class="filter-select">
+                    <option value="">Hamısı</option>
+                    {% for clinic in clinics %}
+                    <option value="{{ clinic.name }}">{{ clinic.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <button class="reset-filters-btn" onclick="resetFilters()">
+                    <i class="fas fa-redo"></i> Sıfırla
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Kod</th>
+                    <th>Ad Soyad</th>
+                    <th>İxtisas</th>
+                    <th>Bölgə</th>
+                    <th>Dərəcə</th>
+                    <th>Telefon</th>
+                    <th>Kateqoriya</th>
+                    <th>Klinika</th>
+                    <th>Yekun Borc</th>
+                    <th>Əməliyyatlar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doctor in doctors %}
+                <tr>
+                    <td>
+                        <span class="badge">{{ doctor.code }}</span>
+                    </td>
+                    <td>
+                        <div class="doctor-info">
+                            <div class="doctor-name">
+                                <a href="{% url 'doctors:detail' doctor.id %}">
+                                    {{ doctor.ad }}
+                                </a>
+                            </div>
+                            <div class="doctor-meta">
+                                <i class="fas fa-{% if doctor.gender == 'male' %}male{% elif doctor.gender == 'female' %}female{% else %}transgender{% endif %}"></i>
+                                {{ doctor.get_gender_display }}
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ doctor.ixtisas.name|default:"-" }}</td>
+                    <td>{{ doctor.region.name|default:"-" }}</td>
+                    <td><span class="badge">{{ doctor.degree }}</span></td>
+                    <td>{{ doctor.telefon|default:"-" }}</td>
+                    <td><span class="badge">{{ doctor.category }}</span></td>
+                    <td>{{ doctor.clinic.name|default:"-" }}</td>
+                    <td>
+                        {% if doctor.yekun_borc > 0 %}
+                            <span class="debt debt-negative">{{ doctor.yekun_borc }} ₼</span>
+                        {% elif doctor.yekun_borc < 0 %}
+                            <span class="debt debt-positive">+{{ doctor.yekun_borc|floatformat:2|cut:"-" }} ₼</span>
+                        {% else %}
+                            <span class="debt debt-zero">0.00 ₼</span>
+                        {% endif %}
+                    </td>
+                    <td class="table-actions">
+                        <button class="action-btn action-view" onclick="viewDoctor({{ doctor.id }})" title="Bax">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn action-edit" onclick="editDoctor({{ doctor.id }})" title="Redaktə et">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn action-delete" onclick="deleteDoctor({{ doctor.id }})" title="Sil">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-user-md" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+                        <p style="color: var(--text-muted);">Hələ ki həkim əlavə edilməyib</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if doctors.paginator.num_pages > 1 %}
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Göstərilir: {{ doctors.start_index }}-{{ doctors.end_index }} / {{ total_doctors }} həkim
+        </div>
+        
+        <div class="pagination-controls">
+            {% if doctors.has_previous %}
+                <a href="?page=1" class="page-btn" title="İlk səhifə">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ doctors.previous_page_number }}" class="page-btn" title="Əvvəlki">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            {% else %}
+                <span class="page-btn disabled">
+                    <i class="fas fa-angle-double-left"></i>
+                </span>
+                <span class="page-btn disabled">
+                    <i class="fas fa-angle-left"></i>
+                </span>
+            {% endif %}
+            
+            {% for num in doctors.paginator.page_range %}
+                {% if doctors.number == num %}
+                    <span class="page-btn active">{{ num }}</span>
+                {% elif num > doctors.number|add:'-3' and num < doctors.number|add:'3' %}
+                    <a href="?page={{ num }}" class="page-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if doctors.has_next %}
+                <a href="?page={{ doctors.next_page_number }}" class="page-btn" title="Növbəti">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ doctors.paginator.num_pages }}" class="page-btn" title="Son səhifə">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            {% else %}
+                <span class="page-btn disabled">
+                    <i class="fas fa-angle-right"></i>
+                </span>
+                <span class="page-btn disabled">
+                    <i class="fas fa-angle-double-right"></i>
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.page-messages {
+    margin-bottom: 24px;
+}
+
+.page-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    border-left: 4px solid;
+    position: relative;
+}
+
+.page-message i {
+    font-size: 20px;
+}
+
+.page-message span {
+    flex: 1;
+}
+
+.message-close {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: opacity 0.2s;
+}
+
+.message-close:hover {
+    opacity: 1;
+}
+
+.page-message-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-left-color: #10b981;
+    color: #065f46;
+}
+
+.page-message-success i {
+    color: #10b981;
+}
+
+.page-message-error,
+.page-message-danger {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-left-color: #ef4444;
+    color: #991b1b;
+}
+
+.page-message-error i,
+.page-message-danger i {
+    color: #ef4444;
+}
+
+.page-message-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-left-color: #f59e0b;
+    color: #92400e;
+}
+
+.page-message-warning i {
+    color: #f59e0b;
+}
+
+.page-message-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-left-color: #3b82f6;
+    color: #1e3a8a;
+}
+
+.page-message-info i {
+    color: #3b82f6;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: var(--surface-muted);
+}
+
+.data-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table tbody tr:hover {
+    background: var(--surface-hover);
+}
+
+.filter-section {
+    padding: 20px;
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filter-item {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-item label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-select:hover {
+    border-color: var(--primary);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.reset-filters-btn {
+    padding: 8px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reset-filters-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.doctor-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.doctor-name {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.doctor-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.doctor-meta i {
+    margin-right: 4px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.debt {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.debt-negative {
+    color: #ef4444;
+}
+
+.debt-positive {
+    color: #10b981;
+}
+
+.debt-zero {
+    color: var(--text-muted);
+}
+
+.table-actions {
+    white-space: nowrap;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.action-btn {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.action-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.action-btn.action-view:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.action-btn.action-edit:hover {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.action-btn.action-delete:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.page-btn {
+    min-width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.page-btn:hover:not(.disabled):not(.active) {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.page-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    font-weight: 600;
+}
+
+.page-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 1400px) {
+    .data-table {
+        font-size: 13px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .data-table {
+        font-size: 12px;
+    }
+    
+    .filter-row {
+        flex-direction: column;
+    }
+    
+    .filter-item {
+        width: 100%;
+    }
+    
+    .reset-filters-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .table-actions {
+        gap: 4px;
+    }
+    
+    .action-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+    
+    .pagination-container {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    .pagination-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .page-btn {
+        min-width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+}
+</style>
+
+<script>
+// Search functionality
+document.getElementById('doctorSearch').addEventListener('input', function(e) {
+    applyFilters();
+});
+
+// Filter functionality
+document.getElementById('filterRegion').addEventListener('change', applyFilters);
+document.getElementById('filterIxtisas').addEventListener('change', applyFilters);
+document.getElementById('filterCategory').addEventListener('change', applyFilters);
+document.getElementById('filterDegree').addEventListener('change', applyFilters);
+document.getElementById('filterClinic').addEventListener('change', applyFilters);
+
+function applyFilters() {
+    const searchTerm = document.getElementById('doctorSearch').value.toLowerCase();
+    const regionFilter = document.getElementById('filterRegion').value;
+    const ixtisasFilter = document.getElementById('filterIxtisas').value;
+    const categoryFilter = document.getElementById('filterCategory').value;
+    const degreeFilter = document.getElementById('filterDegree').value;
+    const clinicFilter = document.getElementById('filterClinic').value;
+    
+    const rows = document.querySelectorAll('.data-table tbody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 9) return; // Skip empty rows
+        
+        const code = cells[0].textContent.toLowerCase();
+        const name = cells[1].textContent.toLowerCase();
+        const ixtisas = cells[2].textContent.trim();
+        const region = cells[3].textContent.trim();
+        const degree = cells[4].textContent.trim();
+        const phone = cells[5].textContent.toLowerCase();
+        const category = cells[6].textContent.trim();
+        const clinic = cells[7].textContent.trim();
+        
+        // Search filter
+        const matchesSearch = !searchTerm || 
+            code.includes(searchTerm) || 
+            name.includes(searchTerm) || 
+            phone.includes(searchTerm);
+        
+        // Dropdown filters
+        const matchesRegion = !regionFilter || region === regionFilter;
+        const matchesIxtisas = !ixtisasFilter || ixtisas === ixtisasFilter;
+        const matchesCategory = !categoryFilter || category === categoryFilter;
+        const matchesDegree = !degreeFilter || degree === degreeFilter;
+        const matchesClinic = !clinicFilter || clinic === clinicFilter;
+        
+        // Show row only if all filters match
+        const shouldShow = matchesSearch && matchesRegion && matchesIxtisas && 
+                          matchesCategory && matchesDegree && matchesClinic;
+        
+        row.style.display = shouldShow ? '' : 'none';
+        if (shouldShow) visibleCount++;
+    });
+    
+    // Update visible count
+    updateFilterInfo(visibleCount, rows.length);
+}
+
+function updateFilterInfo(visible, total) {
+    const subtitle = document.querySelector('.panel-subtitle');
+    if (visible < total) {
+        subtitle.innerHTML = `Cəmi: {{ total_doctors }} həkim | Səhifə {{ doctors.number }} / {{ doctors.paginator.num_pages }} | Filtr nəticəsi: ${visible} həkim`;
+    } else {
+        subtitle.innerHTML = 'Cəmi: {{ total_doctors }} həkim | Səhifə {{ doctors.number }} / {{ doctors.paginator.num_pages }}';
+    }
+}
+
+function resetFilters() {
+    document.getElementById('doctorSearch').value = '';
+    document.getElementById('filterRegion').value = '';
+    document.getElementById('filterIxtisas').value = '';
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterDegree').value = '';
+    document.getElementById('filterClinic').value = '';
+    applyFilters();
+}
+
+// Action handlers
+function viewDoctor(id) {
+    window.location.href = `{% url 'doctors:list' %}${id}/`;
+}
+
+function editDoctor(id) {
+    window.location.href = `{% url 'doctors:list' %}${id}/edit/`;
+}
+
+function deleteDoctor(id) {
+    if (confirm('Bu həkimi silmək istədiyinizdən əminsiniz?')) {
+        alert('Silmə funksiyası hələ aktivləşdirilməyib.');
+        // TODO: Implement delete functionality
+    }
+}
+</script>
+{% endblock %}

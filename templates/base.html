@@ -1,0 +1,1099 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ SYSTEM_NAME|default:"MedCor" }}{% if SYSTEM_SUBTITLE %} - {{ SYSTEM_SUBTITLE }}{% endif %}</title>
+    <link rel="icon" type="image/png" href="{% static SYSTEM_FAVICON|default:'img/icon.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Apply theme immediately before page render to prevent flash
+        (function() {
+            const themes = {
+                light: {
+                    appBg: '#f6f7fb',
+                    background: '#f6f7fb',
+                    surface: '#ffffff',
+                    surfaceAlt: '#eef2ff',
+                    surfaceMuted: '#f3f6ff',
+                    primary: '#2563eb',
+                    primarySoft: '#dbe4ff',
+                    secondary: '#22d3ee',
+                    success: '#10b981',
+                    warning: '#f97316',
+                    danger: '#ef4444',
+                    text: '#0f172a',
+                    textMuted: '#8a93a6',
+                    border: '#e4e7ec',
+                    shadowLg: '0 30px 60px rgba(15, 23, 42, 0.08)'
+                },
+                dark: {
+                    appBg: '#050a1f',
+                    background: '#050a1f',
+                    surface: '#0b152c',
+                    surfaceAlt: '#1e293b',
+                    surfaceMuted: '#0f172a',
+                    primary: '#3b82f6',
+                    primarySoft: '#1e3a8a',
+                    secondary: '#8b5cf6',
+                    success: '#2dd4bf',
+                    warning: '#db6007',
+                    danger: '#ef4444',
+                    text: '#e2e8f0',
+                    textMuted: '#94a3b8',
+                    border: 'rgba(148, 163, 184, 0.2)',
+                    shadowLg: '0 20px 50px rgba(3, 7, 18, 0.55)'
+                },
+                blue: {
+                    appBg: '#e0f2fe',
+                    background: '#e0f2fe',
+                    surface: '#ffffff',
+                    surfaceAlt: '#bae6fd',
+                    surfaceMuted: '#f0f9ff',
+                    primary: '#0284c7',
+                    primarySoft: '#bae6fd',
+                    secondary: '#06b6d4',
+                    success: '#10b981',
+                    warning: '#f59e0b',
+                    danger: '#ef4444',
+                    text: '#0c4a6e',
+                    textMuted: '#64748b',
+                    border: '#7dd3fc',
+                    shadowLg: '0 30px 60px rgba(2, 132, 199, 0.15)'
+                },
+                purple: {
+                    appBg: '#faf5ff',
+                    background: '#faf5ff',
+                    surface: '#ffffff',
+                    surfaceAlt: '#f3e8ff',
+                    surfaceMuted: '#faf5ff',
+                    primary: '#9333ea',
+                    primarySoft: '#e9d5ff',
+                    secondary: '#d946ef',
+                    success: '#10b981',
+                    warning: '#f59e0b',
+                    danger: '#ef4444',
+                    text: '#581c87',
+                    textMuted: '#94a3b8',
+                    border: '#e9d5ff',
+                    shadowLg: '0 30px 60px rgba(147, 51, 234, 0.15)'
+                },
+                green: {
+                    appBg: '#f0fdf4',
+                    background: '#f0fdf4',
+                    surface: '#ffffff',
+                    surfaceAlt: '#dcfce7',
+                    surfaceMuted: '#f7fee7',
+                    primary: '#16a34a',
+                    primarySoft: '#bbf7d0',
+                    secondary: '#84cc16',
+                    success: '#22c55e',
+                    warning: '#f59e0b',
+                    danger: '#ef4444',
+                    text: '#14532d',
+                    textMuted: '#6b7280',
+                    border: '#bbf7d0',
+                    shadowLg: '0 30px 60px rgba(22, 163, 74, 0.15)'
+                },
+                darkgreen: {
+                    appBg: '#0a2817',
+                    background: '#0a2817',
+                    surface: '#0f3d23',
+                    surfaceAlt: '#15492b',
+                    surfaceMuted: '#1a5535',
+                    primary: '#10b981',
+                    primarySoft: '#064e3b',
+                    secondary: '#34d399',
+                    success: '#6ee7b7',
+                    warning: '#fbbf24',
+                    danger: '#f87171',
+                    text: '#d1fae5',
+                    textMuted: '#86efac',
+                    border: 'rgba(16, 185, 129, 0.3)',
+                    shadowLg: '0 20px 50px rgba(6, 78, 59, 0.5)'
+                },
+                red: {
+                    appBg: '#fef2f2',
+                    background: '#fef2f2',
+                    surface: '#ffffff',
+                    surfaceAlt: '#fee2e2',
+                    surfaceMuted: '#fef2f2',
+                    primary: '#dc2626',
+                    primarySoft: '#fecaca',
+                    secondary: '#f87171',
+                    success: '#10b981',
+                    warning: '#f59e0b',
+                    danger: '#b91c1c',
+                    text: '#7f1d1d',
+                    textMuted: '#94a3b8',
+                    border: '#fecaca',
+                    shadowLg: '0 30px 60px rgba(220, 38, 38, 0.15)'
+                }
+            };
+
+            try {
+                const savedTheme = localStorage.getItem('selectedTheme') || 'light';
+                const theme = themes[savedTheme] || themes.light;
+                const root = document.documentElement;
+
+                // Set data-theme attribute for dark mode
+                if (savedTheme === 'dark') {
+                    root.setAttribute('data-theme', 'dark');
+                } else {
+                    root.removeAttribute('data-theme');
+                }
+
+                // Apply CSS variables immediately
+                Object.keys(theme).forEach(key => {
+                    const cssVarName = '--' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
+                    root.style.setProperty(cssVarName, theme[key]);
+                });
+            } catch (e) {
+                // If localStorage fails, use default light theme
+                console.error('Theme loading error:', e);
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="app-sidebar">
+        <div class="sidebar-brand">
+            {% if company.logo %}
+            <div class="brand-logo">
+                <img src="{{ company.logo.url }}" alt="{{ company.name }}">
+            </div>
+            {% elif SYSTEM_LOGO %}
+            <div class="brand-logo">
+                <img src="{% static SYSTEM_LOGO|default:'img/icon.png' %}" alt="{{ SYSTEM_NAME|default:'MedCor' }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="brand-icon" style="display: none;">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+            </div>
+            {% else %}
+            <div class="brand-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            {% endif %}
+            {% if not company.logo and not SYSTEM_LOGO %}
+            <div>
+                <div class="brand-title">{{ company.name|default:SYSTEM_NAME|default:"" }}</div>
+                {% if SYSTEM_SUBTITLE %}
+                <div class="brand-subtitle">{{ SYSTEM_SUBTITLE }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-label">Menyu</div>
+            <a href="{% url 'core:dashboard' %}" class="menu-item {% block active_dashboard %}{% endblock %}">
+                <i class="fas fa-home"></i>
+                <span class="menu-text">İdarə Paneli</span>
+            </a>
+
+            <a href="{% url 'doctors:list' %}" class="menu-item {% block active_doctors %}{% endblock %}">
+                <i class="fas fa-user-md"></i>
+                <span class="menu-text">Həkimlər</span>
+                <!-- <span class="menu-badge"></span> -->
+            </a>
+            <a href="{% url 'doctors:add' %}" class="menu-item {% block active_add_doctor %}{% endblock %}">
+                <i class="fas fa-plus-circle"></i>
+                <span class="menu-text">Həkim Əlavə et</span>
+            </a>
+
+            <a href="{% url 'doctors:add_payment' %}" class="menu-item {% block active_add_payment %}{% endblock %}">
+                <i class="fas fa-money-bill-wave"></i>
+                <span class="menu-text">Ödəniş əlavə et</span>
+            </a>
+            <!-- <a href="" class="menu-item {% block active_payments %}{% endblock %}">
+                <i class="fas fa-receipt"></i>
+                <span class="menu-text">Ödənişlər</span>
+                <span class="menu-badge"></span> 
+            </a> -->
+
+            <!-- <a href="{% url 'reports:list' %}" class="menu-item {% block active_datasiya %}{% endblock %}">
+                <i class="fas fa-database"></i>
+                <span class="menu-text">Datasiya</span>
+            </a> -->
+
+            <a href="{% url 'drugs:list' %}" class="menu-item {% block active_drugs %}{% endblock %}">
+                <i class="fas fa-pills"></i>
+                <span class="menu-text">Dərmanlar</span>
+                <!-- <span class="menu-badge">89</span> -->
+            </a>
+            <a href="{% url 'prescriptions:add' %}" class="menu-item {% block active_add_registration %}{% endblock %}">
+                <i class="fas fa-truck-loading"></i>
+                <span class="menu-text">Qeydiyyat əlavə et</span>
+            </a>
+
+
+            <a href="{% url 'prescriptions:list' %}" class="menu-item {% block active_spellings %}{% endblock %}">
+                <i class="fas fa-calendar-alt"></i>
+                <span class="menu-text">Aylıq Qeydiyyatlar</span>
+            </a>
+
+            <a href="{% url 'sales:list' %}" class="menu-item {% block active_sales %}{% endblock %}">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="menu-text">Satışlar</span>
+                <!-- <span class="menu-badge">342</span> -->
+            </a>
+            <a href="{% url 'sales:add' %}" class="menu-item {% block active_add_sale %}{% endblock %}">
+                <i class="fas fa-chart-line"></i>
+                <span class="menu-text">Satış Əlavə et</span>
+            </a>
+            <a href="{% url 'sales:sale_list' %}" class="menu-item {% block active_sale_list %}{% endblock %}">
+                <i class="fas fa-edit"></i>
+                <span class="menu-text">Satış qeydləri</span>
+            </a>
+
+            <a href="{% url 'reports:list' %}" class="menu-item {% block active_reports %}{% endblock %}">
+                <i class="fas fa-file-invoice"></i>
+                <span class="menu-text">Aylıq Hesabat</span>
+            </a>
+            {% if CHATBOT_ENABLED and subscription and subscription.plan %}
+                {% if subscription.plan.plan_type == 'professional' or subscription.plan.plan_type == 'enterprise' %}
+            <a href="{% url 'chatbot:chatbot' %}" class="menu-item {% block active_chatbot %}{% endblock %}">
+                <i class="fas fa-robot"></i>
+                <span class="menu-text">AI Chatbot</span>
+            </a>
+                {% endif %}
+            {% endif %}
+            
+            <div class="menu-label" style="margin-top: 24px;">Bölgələr və Klinikalar</div>
+            <a href="{% url 'regions:list' %}" class="menu-item {% block active_regions %}{% endblock %}">
+                <i class="fas fa-map-marker-alt"></i>
+                <span class="menu-text">Bölgələr</span>
+            </a>
+            <a href="{% url 'regions:city_list' %}" class="menu-item {% block active_cities %}{% endblock %}">
+                <i class="fas fa-city"></i>
+                <span class="menu-text">Şəhərlər</span>
+            </a>
+            <a href="{% url 'regions:clinic_list' %}" class="menu-item {% block active_clinics %}{% endblock %}">
+                <i class="fas fa-clinic-medical"></i>
+                <span class="menu-text">Klinikalar</span>
+            </a>
+            <a href="{% url 'regions:specialization_list' %}" class="menu-item {% block active_specializations %}{% endblock %}">
+                <i class="fas fa-stethoscope"></i>
+                <span class="menu-text">İxtisaslar</span>
+            </a>
+            
+            <a href="{% url 'core:notifications' %}" class="menu-item {% block active_notifications %}{% endblock %}">
+                <i class="fas fa-bell"></i>
+                <span class="menu-text">Bildirişlər</span>
+                {% if unread_notification_count > 0 %}
+                <span class="menu-badge">{{ unread_notification_count }}</span>
+                {% endif %}
+            </a>
+            <a href="" class="menu-item {% block active_old_report %}{% endblock %}">
+                <i class="fas fa-archive"></i>
+                <span class="menu-text">Köhnə Hesabat</span>
+            </a>
+
+            <div class="menu-divider"></div>
+
+            <a href="{% url 'core:settings' %}" class="menu-item {% block active_settings %}{% endblock %}">
+                <i class="fas fa-cog"></i>
+                <span class="menu-text">Tənzimləmələr</span>
+            </a>
+        </div>
+        <!-- <div class="sidebar-cta">
+            <div class="cta-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="cta-title">Görüş</div>
+            <p class="cta-text">Yeni görüş təyin etmək istəyirsiniz?</p>
+            <button class="cta-button">Görüş Təyin Et</button>
+        </div> -->
+    </div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="top-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button type="button" class="toggle-sidebar" id="toggle-sidebar" aria-label="Menyunu aç" aria-expanded="false" aria-controls="app-sidebar">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-action-buttons">
+                    <a class="action-btn action-btn-primary" title="Yeni qeydiyyat əlavə et" href="{% url 'prescriptions:add' %}">
+                        <i class="fas fa-user-plus"></i>
+                        <span class="btn-text">Qeydiyyat Əlavə Edin</span>
+                    </a>
+                    <a class="action-btn action-btn-success" title="Yeni satış əlavə et" href="{% url 'sales:add' %}">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="btn-text">Satış Əlavə Edin</span>
+                    </a>
+                    <a class="action-btn action-btn-warning" title="Yeni ödəniş əlavə et" href="{% url 'doctors:add_payment' %}">
+                            <i class="fas fa-money-bill-wave"></i>
+                        <span class="btn-text">Ödəniş Əlavə Edin</span>
+                    </a>
+                </div>
+                <a href="{% url 'core:notifications' %}" class="topbar-icon" title="Notifications">
+                    <i class="far fa-bell"></i>
+                    {% if unread_notification_count > 0 %}
+                    <span class="notification-badge">{{ unread_notification_count }}</span>
+                    {% endif %}
+                </a>
+                {% if CHATBOT_ENABLED %}
+                <button class="topbar-icon" id="chatbot-toggle" title="Messages">
+                    <i class="far fa-comment-alt"></i>
+                </button>
+                {% endif %}
+                <div class="user-menu-wrapper">
+                    <div class="user-menu" id="user-menu-toggle">
+                        <div class="user-avatar">{{ user.username|slice:":2" }}</div>
+                        <div class="user-details">
+                            <div class="user-name">{{ user.username }}</div>
+                            {% if user.is_superuser %}
+                            <div class="user-role">Admin</div>
+                            {% else %}
+                            <div class="user-role">User</div>
+                            {% endif %}
+                            <div class="user-role">{{ user.role }}</div>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="dropdown-header">
+                            <div class="user-avatar large">{{ user.username|slice:":2" }}</div>
+                            <div>
+                                <div class="dropdown-user-name">{{ user.username }}</div>
+                                <div class="dropdown-user-email">{{ user.email }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'core:profile' %}" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Mənim Profilim</span>
+                        </a>
+                        <a href="{% url 'core:settings' %}" class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Tənzimləmələr</span>
+                        </a>
+                        <a href="" class="dropdown-item">
+                            <i class="fas fa-bell"></i>
+                            <span>Bildirişlər</span>
+                            {% if unread_notification_count > 0 %}
+                            <span class="item-badge">{{ unread_notification_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="" class="dropdown-item">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Kömək və Dəstək</span>
+                        </a>
+                        {% if user.is_superuser %}
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'master_admin:dashboard' %}" class="dropdown-item" style="background: linear-gradient(135deg, #fee2e2, #fef2f2); color: #dc2626; font-weight: 600;">
+                            <i class="fas fa-crown"></i>
+                            <span>Master Admin Panel</span>
+                        </a>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'core:landing' %}" class="dropdown-item danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Çıxış</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if CHATBOT_ENABLED %}
+        <!-- Chatbot Side Panel -->
+    <div class="chatbot-panel" id="chatbot-panel">
+            <div class="chatbot-header">
+                <div class="chatbot-header-left">
+                    <div class="chatbot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <div class="chatbot-title">AI Tibbi Assistent</div>
+                        <div class="chatbot-status">
+                            <span class="status-dot"></span>
+                            Onlayn
+                        </div>
+                    </div>
+                </div>
+                <button class="chatbot-close" id="chatbot-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbot-messages">
+            </div>
+            
+            <div class="chatbot-input-area">
+                <button class="attach-btn" title="Fayl Əlavə Et">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="text" id="chatbot-input" placeholder="Mesajınızı yazın..." class="chatbot-input">
+                <button class="send-btn" id="chatbot-send">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        
+         <!-- Chatbot Overlay -->
+        <div class="chatbot-overlay" id="chatbot-overlay"></div>
+        {% endif %}
+    
+
+        <!-- Django Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+                <div class="alert-icon">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="alert-content">
+                    <strong>
+                        {% if message.tags == 'success' %}
+                            Uğurlu!
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}
+                            Xəta!
+                        {% elif message.tags == 'warning' %}
+                            Diqqət!
+                        {% else %}
+                            Məlumat
+                        {% endif %}
+                    </strong>
+                    <p>{{ message }}</p>
+                </div>
+                <button type="button" class="alert-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/theme-manager.js' %}"></script>
+    
+    <script>
+
+// Theme Management System
+
+
+// Show notification
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'theme-notification';
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+}
+
+// Load saved colors
+function loadSavedTheme() {
+    // Check if themes object exists (from theme-manager.js)
+    if (typeof themes === 'undefined' || typeof applyTheme === 'undefined') {
+        return; // Theme manager not loaded, skip
+    }
+    const savedTheme = localStorage.getItem('selectedTheme');
+    if (savedTheme && themes[savedTheme]) {
+        if (typeof currentTheme !== 'undefined') {
+            currentTheme = savedTheme;
+        }
+        applyTheme(themes[savedTheme]);
+    }
+}
+
+// Modal functions
+function openColorPicker() {
+    const modal = document.getElementById('colorPickerModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        initColorPicker();
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+    }
+}
+
+function closeColorPicker() {
+    const modal = document.getElementById('colorPickerModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+}
+
+// Make functions globally accessible
+window.openColorPicker = openColorPicker;
+window.closeColorPicker = closeColorPicker;
+window.resetColors = resetColors;
+window.saveColors = saveColors;
+window.selectTheme = selectTheme;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Theme is already applied by inline script in head, so we don't need to load it again
+    // This prevents the flash of light mode
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('colorPickerModal');
+    if (modal) {
+        modal.onclick = function(e) {
+            if (e.target.id === 'colorPickerModal') {
+                closeColorPicker();
+            }
+        };
+    }
+});
+
+        // Toggle sidebar on mobile
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const toggleBtn = document.getElementById('toggle-sidebar') || document.querySelector('.toggle-sidebar');
+
+        function setSidebarOpen(isOpen) {
+            if (!sidebar || !sidebarOverlay) return;
+            sidebar.classList.toggle('active', isOpen);
+            sidebarOverlay.classList.toggle('active', isOpen);
+            document.body.classList.toggle('sidebar-open', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                toggleBtn.setAttribute('aria-label', isOpen ? 'Menyunu bağla' : 'Menyunu aç');
+                const icon = toggleBtn.querySelector('i');
+                if (icon) {
+                    icon.className = isOpen ? 'fas fa-times' : 'fas fa-bars';
+                }
+            }
+        }
+
+        function closeSidebar() {
+            setSidebarOpen(false);
+        }
+
+        function toggleSidebar() {
+            const isOpen = sidebar && sidebar.classList.contains('active');
+            setSidebarOpen(!isOpen);
+        }
+
+        if (toggleBtn && sidebar && sidebarOverlay) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth > 992) return;
+            if (!sidebar || !sidebar.classList.contains('active')) return;
+            if (sidebar.contains(event.target)) return;
+            if (toggleBtn && toggleBtn.contains(event.target)) return;
+            closeSidebar();
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closeSidebar();
+        });
+
+        // Reset on resize to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) closeSidebar();
+        });
+
+        // Menu item active state
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => {
+            item.addEventListener('click', function() {
+                menuItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Close sidebar on mobile when menu item is clicked
+                if (window.innerWidth <= 992) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        {% if CHATBOT_ENABLED %}
+        // ==================== CHATBOT FUNCTIONALITY ====================
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotPanel = document.getElementById('chatbot-panel');
+        const chatbotClose = document.getElementById('chatbot-close');
+        const chatbotOverlay = document.getElementById('chatbot-overlay');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const chatbotSend = document.getElementById('chatbot-send');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+
+        const CHATBOT_SEND_URL = "{% url 'chatbot:send_message' %}";
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const parts = document.cookie.split('; ');
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i].split('=');
+                    if (part[0].trim() === name) {
+                        cookieValue = decodeURIComponent(part[1].trim());
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Open chatbot
+        chatbotToggle.addEventListener('click', function() {
+            chatbotPanel.classList.add('active');
+            chatbotOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            chatbotInput.focus();
+        });
+
+        // Close chatbot
+        function closeChatbot() {
+            chatbotPanel.classList.remove('active');
+            chatbotOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        chatbotClose.addEventListener('click', closeChatbot);
+        chatbotOverlay.addEventListener('click', closeChatbot);
+
+        // Send message function – real API call to chatbot backend
+        function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+
+            const userMessageHTML = `
+                <div class="chat-message user-message">
+                    <div class="message-content">
+                        <div class="message-text">${escapeHtml(message)}</div>
+                        <div class="message-time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+                </div>
+            `;
+            chatbotMessages.insertAdjacentHTML('beforeend', userMessageHTML);
+            chatbotInput.value = '';
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+            const loadingId = 'chatbot-loading-' + Date.now();
+            const loadingHTML = `
+                <div class="chat-message bot-message" id="${loadingId}">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text"><i class="fas fa-spinner fa-spin"></i> Cavab gözlənilir...</div>
+                    </div>
+                </div>
+            `;
+            chatbotMessages.insertAdjacentHTML('beforeend', loadingHTML);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+            fetch(CHATBOT_SEND_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) {
+                        data = data || {};
+                        data.success = false;
+                        data.error = data.error || 'Cavab alınmadı.';
+                    }
+                    return data;
+                }).catch(function() {
+                    return { success: false, error: 'Cavab alınmadı.' };
+                });
+            })
+            .then(function(data) {
+                const loadingEl = document.getElementById(loadingId);
+                if (loadingEl) loadingEl.remove();
+                const text = data.success ? (data.message || '') : (data.error || 'Cavab alınmadı.');
+                const botMessageHTML = `
+                    <div class="chat-message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text">${escapeHtml(text)}</div>
+                            <div class="message-time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    </div>
+                `;
+                chatbotMessages.insertAdjacentHTML('beforeend', botMessageHTML);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            })
+            .catch(function(err) {
+                const loadingEl = document.getElementById(loadingId);
+                if (loadingEl) loadingEl.remove();
+                const botMessageHTML = `
+                    <div class="chat-message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text">${escapeHtml('Bağlantı xətası. Zəhmət olmasa yenidən cəhd edin.')}</div>
+                            <div class="message-time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    </div>
+                `;
+                chatbotMessages.insertAdjacentHTML('beforeend', botMessageHTML);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            });
+        }
+
+        // Send message on button click
+        chatbotSend.addEventListener('click', sendMessage);
+
+        // Send message on Enter key
+        chatbotInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Quick action buttons (only if they exist)
+        const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+        if (quickActionBtns.length > 0) {
+            quickActionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const chatbotInput = document.getElementById('chatbot-input');
+                    if (chatbotInput) {
+                        const action = this.textContent.trim();
+                        chatbotInput.value = action;
+                        if (typeof sendMessage === 'function') {
+                            sendMessage();
+                        }
+                    }
+                });
+            });
+        }
+
+        {% endif %}
+        // ==================== USER DROPDOWN MENU ====================
+        const userMenuToggle = document.getElementById('user-menu-toggle');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        if (userMenuToggle && userDropdown) {
+            userMenuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) {
+                    userDropdown.classList.remove('active');
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside
+            userDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        // Count Buttons Animation and Interaction
+        const countButtons = document.querySelectorAll('.count-btn');
+        
+        // Add click animations (only if buttons exist)
+        if (countButtons.length > 0) {
+            countButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        }
+
+        // Animate count numbers on page load
+        function animateCountButton(element, targetNumber) {
+            const badge = element.querySelector('.count-badge');
+            if (!badge) return;
+            const cleanNumber = parseInt(String(targetNumber).replace(/,/g, ''), 10) || 0;
+            const duration = 1000;
+            const steps = 30;
+            const increment = cleanNumber / steps;
+            let current = 0;
+            let step = 0;
+
+            const timer = setInterval(() => {
+                step++;
+                current += increment;
+                
+                if (step >= steps) {
+                    current = cleanNumber;
+                    clearInterval(timer);
+                }
+                
+                badge.textContent = Math.floor(current).toLocaleString('en-US');
+            }, duration / steps);
+        }
+
+        // Start animations when page loads
+        window.addEventListener('load', function() {
+            if (!countButtons.length) return;
+            countButtons.forEach((btn, index) => {
+                setTimeout(() => {
+                    const badge = btn.querySelector('.count-badge');
+                    if (!badge) return;
+                    const targetNumber = badge.textContent;
+                    animateCountButton(btn, targetNumber);
+                }, index * 100);
+            });
+        });
+
+        // Simulate real-time updates (every 10 seconds)
+        setInterval(function() {
+            if (!countButtons.length) return;
+            const randomBtn = countButtons[Math.floor(Math.random() * countButtons.length)];
+            if (!randomBtn) return;
+            const badge = randomBtn.querySelector('.count-badge');
+            if (!badge) return;
+            const currentValue = parseInt(badge.textContent.replace(/,/g, ''), 10) || 0;
+            const change = Math.floor(Math.random() * 10) - 3; // Random change between -3 and +6
+            const newValue = Math.max(0, currentValue + change);
+            
+            // Add pulse animation
+            randomBtn.style.animation = 'pulse 0.5s ease-in-out';
+            setTimeout(() => {
+                randomBtn.style.animation = '';
+            }, 500);
+            
+            badge.textContent = newValue.toLocaleString('en-US');
+        }, 10000);
+    </script>
+    
+    <style>
+        /* Django Messages Styles */
+        .messages-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.3s ease-out;
+            position: relative;
+            border-left: 4px solid;
+        }
+
+        .alert-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-content strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .alert-content p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: inherit;
+            opacity: 0.5;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        /* Success */
+        .alert-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+
+        .alert-success .alert-icon {
+            color: #10b981;
+        }
+
+        /* Error/Danger */
+        .alert-error,
+        .alert-danger {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .alert-error .alert-icon,
+        .alert-danger .alert-icon {
+            color: #ef4444;
+        }
+
+        /* Warning */
+        .alert-warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .alert-warning .alert-icon {
+            color: #f59e0b;
+        }
+
+        /* Info */
+        .alert-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left-color: #3b82f6;
+            color: #1e3a8a;
+        }
+
+        .alert-info .alert-icon {
+            color: #3b82f6;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Auto-hide animation */
+        .alert-dismissing {
+            animation: slideOutRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideOutRight {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .messages-container {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+
+            .alert {
+                padding: 12px 16px;
+            }
+
+            .alert-icon {
+                font-size: 20px;
+            }
+
+            .alert-content strong {
+                font-size: 14px;
+            }
+
+            .alert-content p {
+                font-size: 13px;
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+    
+    <script>
+    // Auto-dismiss messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        if (alerts.length > 0) {
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    if (alert && alert.parentNode) {
+                        alert.classList.add('alert-dismissing');
+                        setTimeout(() => {
+                            if (alert && alert.parentNode) {
+                                alert.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            });
+        }
+    });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

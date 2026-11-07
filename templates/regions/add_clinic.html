@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - Yeni Klinika{% endblock %}
+
+{% block active_clinics %}active{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Klinikalar</div>
+            <h1>{% if request.GET.edit %}Klinikanı Redaktə Et{% else %}Yeni Klinika Əlavə Et{% endif %}</h1>
+            <p>Yeni klinika məlumatlarını daxil edin</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'regions:clinic_list' %}" class="ghost-btn" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i>
+                Geri
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-container" style="max-width: 700px; margin: 0 auto;">
+        <div class="form-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px;">
+            <form method="POST" action="{% url 'regions:add_clinic' %}" id="clinicForm">
+                {% csrf_token %}
+                
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Klinika Adı <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        class="form-input" 
+                        placeholder="Məsələn: Bakı Mərkəzi Klinika"
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                    >
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                            Bölgə <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select 
+                            name="region" 
+                            id="regionSelect"
+                            class="form-input" 
+                            required
+                            onchange="updateCities()"
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                        >
+                            <option value="">Bölgə seçin</option>
+                            {% for region in regions %}
+                                <option value="{{ region.id }}">{{ region.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                            Şəhər <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select 
+                            name="city" 
+                            id="citySelect"
+                            class="form-input" 
+                            required
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                        >
+                            <option value="">Əvvəlcə bölgə seçin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Ünvan <span style="color: var(--text-muted); font-size: 12px;">(İstəyə bağlı)</span>
+                    </label>
+                    <textarea 
+                        name="address" 
+                        class="form-input" 
+                        rows="3"
+                        placeholder="Klinikanın tam ünvanı"
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px; resize: vertical;"
+                    ></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                            Telefon
+                        </label>
+                        <input 
+                            type="text" 
+                            name="phone" 
+                            class="form-input" 
+                            placeholder="+994 XX XXX XX XX"
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                            Klinika Növü <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select 
+                            name="type" 
+                            class="form-input" 
+                            required
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                        >
+                            <option value="clinic" selected>Klinika</option>
+                            <option value="hospital">Xəstəxana</option>
+                            <option value="polyclinic">Poliklinika</option>
+                            <option value="medical_center">Tibb Mərkəzi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+                    <a href="{% url 'regions:clinic_list' %}" class="ghost-btn" style="flex: 1; padding: 12px; text-align: center; text-decoration: none; border-radius: 8px; border: 1px solid var(--border); color: var(--text);">
+                        Ləğv et
+                    </a>
+                    <button type="submit" class="primary-btn" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                        <i class="fas fa-save"></i>
+                        Yadda Saxla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// City data from Django template
+const cityData = {};
+{% regroup cities by region as cities_by_region %}
+{% for region_group in cities_by_region %}
+cityData[{{ region_group.grouper.id }}] = [
+    {% for city in region_group.list %}
+    {id: {{ city.id }}, name: "{{ city.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+{% endfor %}
+
+function updateCities() {
+    const regionSelect = document.getElementById('regionSelect');
+    const citySelect = document.getElementById('citySelect');
+    const selectedRegionId = regionSelect.value;
+    
+    // Clear existing options
+    citySelect.innerHTML = '<option value="">Şəhər seçin</option>';
+    
+    if (selectedRegionId && cityData[selectedRegionId]) {
+        cityData[selectedRegionId].forEach(city => {
+            const option = document.createElement('option');
+            option.value = city.id;
+            option.textContent = city.name;
+            citySelect.appendChild(option);
+        });
+    }
+}
+</script>
+{% endblock %}
+

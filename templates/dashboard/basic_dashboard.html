@@ -1,0 +1,211 @@
+<!-- BASIC PLAN DASHBOARD -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">
+            <span>Ümumi Həkimlər</span>
+        </div>
+        <div class="value">{{ total_doctors }}</div>
+        <div class="stat-icon" style="color: #2563eb;">
+            <i class="fas fa-user-md"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="label">
+            <span>Ümumi Dərmanlar</span>
+        </div>
+        <div class="value">{{ total_drugs }}</div>
+        <div class="stat-icon" style="color: #10b981;">
+            <i class="fas fa-pills"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="label">
+            <span>Ümumi Qeydiyyatlar</span>
+        </div>
+        <div class="value">{{ total_prescriptions }}</div>
+        <div class="stat-icon" style="color: #f59e0b;">
+            <i class="fas fa-file-medical"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="label">
+            <span>Son 30 Gün</span>
+        </div>
+        <div class="value">{{ prescriptions_last_30 }}</div>
+        <div class="stat-icon" style="color: #8b5cf6;">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+    </div>
+</div>
+
+<div class="overview-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Son Qeydiyyatlar</div>
+                <div class="panel-subtitle">Ən son əlavə edilən qeydiyyatlar</div>
+            </div>
+            <a href="{% url 'prescriptions:list' %}" class="panel-link">Hamısına bax</a>
+        </div>
+        <div class="panel-content">
+            {% if recent_prescriptions %}
+            <table class="simple-table">
+                <thead>
+                    <tr>
+                        <th>Tarix</th>
+                        <th>Həkim</th>
+                        <th>Bölgə</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in recent_prescriptions %}
+                    <tr>
+                        <td>{{ prescription.date|date:"d.m.Y" }}</td>
+                        <td>{% if prescription.doctor %}{{ prescription.doctor.ad|default:"-" }}{% else %}-{% endif %}</td>
+                        <td>{% if prescription.region %}{{ prescription.region.name|default:"-" }}{% else %}-{% endif %}</td>
+                        <td>
+                            <span class="badge {% if prescription.is_active %}badge-success{% else %}badge-secondary{% endif %}">
+                                {% if prescription.is_active %}Aktiv{% else %}Deaktiv{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Hələ heç bir qeydiyyat yoxdur</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Sürətli Əməliyyatlar</div>
+                <div class="panel-subtitle">Tez giriş üçün linklər</div>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="quick-actions">
+                <a href="{% url 'doctors:add' %}" class="quick-action-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Həkim Əlavə Et</span>
+                </a>
+                <a href="{% url 'prescriptions:add' %}" class="quick-action-btn">
+                    <i class="fas fa-file-medical"></i>
+                    <span>Qeydiyyat Əlavə Et</span>
+                </a>
+                <a href="{% url 'drugs:list' %}" class="quick-action-btn">
+                    <i class="fas fa-pills"></i>
+                    <span>Dərmanlar</span>
+                </a>
+                <a href="{% url 'reports:list' %}" class="quick-action-btn">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Hesabatlar</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-icon {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 32px;
+    opacity: 0.2;
+}
+
+.simple-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.simple-table th,
+.simple-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.simple-table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: var(--surface-muted);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.3s;
+    border: 1px solid var(--border);
+}
+
+.quick-action-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.quick-action-btn i {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.quick-action-btn span {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.badge-secondary {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+</style>
+

@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - Klinikalar{% endblock %}
+
+{% block active_clinics %}active{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Klinikalar</div>
+            <h1>Klinikalar</h1>
+            <p>Klinikaları idarə edin və yeni klinikalar əlavə edin</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'regions:add_clinic' %}" class="primary-btn" style="text-decoration: none;">
+                <i class="fas fa-plus"></i>
+                Yeni Klinika
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section" style="background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
+        <div class="filter-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">
+            <div class="filter-group">
+                <label class="filter-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">Klinika adı</label>
+                <input type="text" class="filter-input" id="searchInput" placeholder="Klinika adı axtar..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text);">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">Bölgə</label>
+                <select class="filter-select" id="regionFilter" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text);">
+                    <option value="">Hamısı</option>
+                    {% for clinic in clinics %}
+                        {% ifchanged clinic.region %}
+                            <option value="{{ clinic.region.id }}">{{ clinic.region.name }}</option>
+                        {% endifchanged %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">Növ</label>
+                <select class="filter-select" id="typeFilter" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text);">
+                    <option value="">Hamısı</option>
+                    <option value="hospital">Xəstəxana</option>
+                    <option value="clinic">Klinika</option>
+                    <option value="polyclinic">Poliklinika</option>
+                    <option value="medical_center">Tibb Mərkəzi</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn" onclick="filterClinics()" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-search"></i>
+                    Axtar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinics Grid -->
+    <div class="clinics-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+        {% for clinic in clinics %}
+        <div class="clinic-card" data-region="{{ clinic.region.id }}" data-type="{{ clinic.type }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+            <div class="clinic-header" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                <div style="flex: 1;">
+                    <h3 class="clinic-name" style="font-size: 18px; font-weight: 600; color: var(--text); margin: 0 0 8px 0;">{{ clinic.name }}</h3>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <span class="clinic-type" style="padding: 4px 12px; background: var(--primary); color: white; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                            {% if clinic.type == 'hospital' %}Xəstəxana
+                            {% elif clinic.type == 'clinic' %}Klinika
+                            {% elif clinic.type == 'polyclinic' %}Poliklinika
+                            {% elif clinic.type == 'medical_center' %}Tibb Mərkəzi
+                            {% else %}{{ clinic.type }}{% endif %}
+                        </span>
+                        {% if clinic.is_active %}
+                        <span style="padding: 4px 12px; background: #dcfce7; color: #15803d; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                            <i class="fas fa-check-circle"></i> Aktiv
+                        </span>
+                        {% else %}
+                        <span style="padding: 4px 12px; background: #fee2e2; color: #991b1b; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                            <i class="fas fa-times-circle"></i> Qeyri-aktiv
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="clinic-icon" style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0;">
+                    <i class="fas fa-clinic-medical"></i>
+                </div>
+            </div>
+            <div class="clinic-info" style="margin-bottom: 16px;">
+                <div class="info-item" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text-muted); font-size: 14px;">
+                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                    <span><strong>Bölgə:</strong> {{ clinic.region.name }}</span>
+                </div>
+                <div class="info-item" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text-muted); font-size: 14px;">
+                    <i class="fas fa-city" style="color: var(--primary);"></i>
+                    <span><strong>Şəhər:</strong> {{ clinic.city.name }}</span>
+                </div>
+                <div class="info-item" style="display: flex; align-items: start; gap: 8px; margin-bottom: 8px; color: var(--text-muted); font-size: 14px;">
+                    <i class="fas fa-location-dot" style="color: var(--primary); margin-top: 4px;"></i>
+                    <span><strong>Ünvan:</strong> {{ clinic.address|truncatewords:10 }}</span>
+                </div>
+                {% if clinic.phone %}
+                <div class="info-item" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 14px;">
+                    <i class="fas fa-phone" style="color: var(--primary);"></i>
+                    <span><strong>Telefon:</strong> {{ clinic.phone }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="clinic-actions" style="display: flex; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border);">
+                <a href="{% url 'regions:add_clinic' %}?edit={{ clinic.id }}" class="action-btn edit-btn" style="flex: 1; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; text-decoration: none; text-align: center; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-edit"></i>
+                    Redaktə
+                </a>
+                <button class="action-btn delete-btn" onclick="deleteClinic({{ clinic.id }}, '{{ clinic.name }}')" style="flex: 1; padding: 8px 16px; background: #fee2e2; color: #991b1b; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s;">
+                    <i class="fas fa-trash"></i>
+                    Sil
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+            <i class="fas fa-clinic-medical" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+            <h3 style="color: var(--text); margin-bottom: 8px;">Heç bir klinika tapılmadı</h3>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">İlk klinikanı əlavə etmək üçün "Yeni Klinika" düyməsini klikləyin</p>
+            <a href="{% url 'regions:add_clinic' %}" class="primary-btn" style="text-decoration: none; display: inline-block;">
+                <i class="fas fa-plus"></i>
+                Yeni Klinika Əlavə Et
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filterClinics() {
+    const searchInput = document.getElementById('searchInput');
+    const regionFilter = document.getElementById('regionFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedRegion = regionFilter.value;
+    const selectedType = typeFilter.value;
+    
+    const cards = document.querySelectorAll('.clinic-card');
+    
+    cards.forEach(card => {
+        const clinicName = card.querySelector('.clinic-name').textContent.toLowerCase();
+        const regionId = card.getAttribute('data-region');
+        const clinicType = card.getAttribute('data-type');
+        
+        let show = true;
+        
+        if (searchTerm && !clinicName.includes(searchTerm)) {
+            show = false;
+        }
+        
+        if (selectedRegion && regionId !== selectedRegion) {
+            show = false;
+        }
+        
+        if (selectedType && clinicType !== selectedType) {
+            show = false;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+function deleteClinic(clinicId, clinicName) {
+    if (confirm(`"${clinicName}" klinikasını silmək istədiyinizə əminsiniz?`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{% url 'regions:clinic_list' %}`;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken.value;
+            form.appendChild(csrfInput);
+        }
+        
+        const deleteInput = document.createElement('input');
+        deleteInput.type = 'hidden';
+        deleteInput.name = 'delete_id';
+        deleteInput.value = clinicId;
+        form.appendChild(deleteInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Allow Enter key to trigger search
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        filterClinics();
+    }
+});
+
+// Auto-filter on select change
+document.getElementById('regionFilter').addEventListener('change', filterClinics);
+document.getElementById('typeFilter').addEventListener('change', filterClinics);
+</script>
+{% endblock %}
+

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            padding: 40px 36px;
+            border-radius: 18px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.15);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .login-title h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .login-title p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+
+        /* INPUT GROUP */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-box {
+            position: relative;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            font-size: 15px;
+            background: #f8fafc;
+            transition: 0.25s;
+        }
+
+        .input-box input:focus {
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.15);
+            outline: none;
+        }
+
+        /* ICON */
+        .input-box .icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* REMEMBER + FORGOT */
+        .options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .options a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .options a:hover {
+            text-decoration: underline;
+        }
+
+        /* BUTTON */
+        .login-btn {
+            width: 100%;
+            padding: 14px 0;
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.25s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.35);
+        }
+
+        /* FOOTER */
+        .login-footer {
+            margin-top: 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .login-footer a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+
+        <div class="login-title">
+            <h2>Xoş Gəlmisiniz!</h2>
+            <p>Davam etmək üçün hesabınıza daxil olun</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- USERNAME -->
+            <div class="input-group">
+                <label for="username">İstifadəçi Adı və ya Email</label>
+                <div class="input-box">
+                    <input type="text" id="username" name="username" placeholder="username" required>
+                    <i class="fas fa-user icon"></i>
+                </div>
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="input-group">
+                <label for="password">Şifrə</label>
+                <div class="input-box">
+                    <input type="password" id="password" name="password" placeholder="Şifrəni daxil edin" required>
+                    <i class="fas fa-eye icon" id="togglePass"></i>
+                </div>
+            </div>
+
+
+            <button class="login-btn">
+                Daxil Ol <i class="fas fa-arrow-right"></i>
+            </button>
+
+        </form>
+
+        <div class="login-footer">
+            Hesabınız yoxdur? <a href="{% url 'subscription:register' %}">Qeydiyyatdan keçin</a>
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // Şifrə göstər/gizlət
+        const pass = document.getElementById("password");
+        const toggle = document.getElementById("togglePass");
+
+        toggle.onclick = () => {
+            if (pass.type === "password") {
+                pass.type = "text";
+                toggle.classList.replace("fa-eye","fa-eye-slash");
+            } else {
+                pass.type = "password";
+                toggle.classList.replace("fa-eye-slash","fa-eye");
+            }
+        };
+
+    </script>
+
+</body>
+</html>

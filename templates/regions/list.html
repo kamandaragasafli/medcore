@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - Bölgələr{% endblock %}
+
+{% block active_regions %}active{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Bölgələr</div>
+            <h1>Bölgələr</h1>
+            <p>Bölgələri idarə edin və yeni bölgələr əlavə edin</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'regions:add' %}" class="primary-btn" style="text-decoration: none;">
+                <i class="fas fa-plus"></i>
+                Yeni Bölgə
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section" style="background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
+        <div class="filter-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">
+            <div class="filter-group">
+                <label class="filter-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">Bölgə adı</label>
+                <input type="text" class="filter-input" id="searchInput" placeholder="Bölgə adı axtar..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text);">
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn" onclick="filterRegions()" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-search"></i>
+                    Axtar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Regions Grid -->
+    <div class="regions-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+        {% for region in regions %}
+        <div class="region-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+            <div class="region-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h3 class="region-name" style="font-size: 18px; font-weight: 600; color: var(--text); margin: 0;">{{ region.name }}</h3>
+                    <div class="region-code" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Kod: {{ region.code }}</div>
+                </div>
+                <div class="region-icon" style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), #60a5fa); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+            </div>
+            <div class="region-info" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div class="info-item">
+                    <span class="info-label" style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Şəhər sayı</span>
+                    <span class="info-value" style="font-size: 16px; font-weight: 600; color: var(--text);">{{ region.cities.count }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label" style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Klinika sayı</span>
+                    <span class="info-value" style="font-size: 16px; font-weight: 600; color: var(--text);">{{ region.clinics.count }}</span>
+                </div>
+            </div>
+            <div class="region-actions" style="display: flex; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border);">
+                <a href="{% url 'regions:add' %}?edit={{ region.id }}" class="action-btn edit-btn" style="flex: 1; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; text-decoration: none; text-align: center; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-edit"></i>
+                    Redaktə
+                </a>
+                <button class="action-btn delete-btn" onclick="deleteRegion({{ region.id }}, '{{ region.name }}')" style="flex: 1; padding: 8px 16px; background: #fee2e2; color: #991b1b; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s;">
+                    <i class="fas fa-trash"></i>
+                    Sil
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+            <i class="fas fa-map-marker-alt" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+            <h3 style="color: var(--text); margin-bottom: 8px;">Heç bir bölgə tapılmadı</h3>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">İlk bölgəni əlavə etmək üçün "Yeni Bölgə" düyməsini klikləyin</p>
+            <a href="{% url 'regions:add' %}" class="primary-btn" style="text-decoration: none; display: inline-block;">
+                <i class="fas fa-plus"></i>
+                Yeni Bölgə Əlavə Et
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filterRegions() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.toLowerCase();
+    const cards = document.querySelectorAll('.region-card');
+    
+    cards.forEach(card => {
+        const regionName = card.querySelector('.region-name').textContent.toLowerCase();
+        const regionCode = card.querySelector('.region-code').textContent.toLowerCase();
+        
+        if (regionName.includes(searchTerm) || regionCode.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function deleteRegion(regionId, regionName) {
+    if (confirm(`"${regionName}" bölgəsini silmək istədiyinizə əminsiniz?`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{% url 'regions:list' %}`;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken.value;
+            form.appendChild(csrfInput);
+        }
+        
+        const deleteInput = document.createElement('input');
+        deleteInput.type = 'hidden';
+        deleteInput.name = 'delete_id';
+        deleteInput.value = regionId;
+        form.appendChild(deleteInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Allow Enter key to trigger search
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        filterRegions();
+    }
+});
+</script>
+{% endblock %}
+

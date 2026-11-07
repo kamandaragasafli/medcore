@@ -1,0 +1,171 @@
+{% extends 'master_admin/base.html' %}
+
+{% block title %}Bildiriş Göndər{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 30px;">
+    <h1 style="color: var(--master-primary);">
+        <i class="fas fa-bell"></i> Bildiriş Göndər
+    </h1>
+    <p style="color: #666;">Şirkətlərə bildiriş göndərin</p>
+</div>
+
+<div class="master-card">
+    <form method="post" id="notificationForm">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                Hazır Şablonlar (Seçim)
+            </label>
+            <select id="templateSelect" 
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
+                    onchange="loadTemplate()">
+                <option value="">Şablon seçin...</option>
+                {% for template in templates %}
+                <option value="{{ template.id }}" 
+                        data-title="{{ template.title }}"
+                        data-message="{{ template.message }}"
+                        data-type="{{ template.notification_type }}"
+                        data-important="{% if template.is_important %}1{% else %}0{% endif %}"
+                        data-action-url="{{ template.action_url|default:'' }}"
+                        data-action-text="{{ template.action_text|default:'' }}"
+                        {% if selected_template and selected_template.id == template.id %}selected{% endif %}>
+                    {{ template.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                Şablon seçdikdə forma avtomatik doldurulacaq. Daha sonra redaktə edə bilərsiniz.
+            </p>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                Şirkətlər *
+            </label>
+            <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                {% for company in companies %}
+                <label style="display: block; padding: 8px; cursor: pointer; border-radius: 4px; margin-bottom: 4px; {% if selected_company and selected_company.id == company.id %}background: #f0f4ff;{% endif %}">
+                    <input type="checkbox" name="companies" value="{{ company.id }}" 
+                           {% if selected_company and selected_company.id == company.id %}checked{% endif %}>
+                    <span style="margin-left: 8px;">{{ company.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                Başlıq *
+            </label>
+            <input type="text" name="title" id="titleInput" required 
+                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                   placeholder="Məsələn: Abunəlik bitməsi haqqında xəbərdarlıq"
+                   value="{% if selected_template %}{{ selected_template.title }}{% endif %}">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                Mesaj *
+            </label>
+            <textarea name="message" id="messageInput" required rows="6"
+                      style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"
+                      placeholder="Bildiriş mətnini yazın...">{% if selected_template %}{{ selected_template.message }}{% endif %}</textarea>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                    Bildiriş Növü
+                </label>
+                <select name="notification_type" id="typeSelect"
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                    <option value="info" {% if selected_template and selected_template.notification_type == 'info' %}selected{% endif %}>Məlumat</option>
+                    <option value="warning" {% if selected_template and selected_template.notification_type == 'warning' %}selected{% endif %}>Xəbərdarlıq</option>
+                    <option value="success" {% if selected_template and selected_template.notification_type == 'success' %}selected{% endif %}>Uğur</option>
+                    <option value="error" {% if selected_template and selected_template.notification_type == 'error' %}selected{% endif %}>Xəta</option>
+                    <option value="subscription" {% if selected_template and selected_template.notification_type == 'subscription' %}selected{% endif %}>Abunəlik</option>
+                </select>
+            </div>
+            
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                    Əlavə Seçimlər
+                </label>
+                <label style="display: flex; align-items: center; padding: 12px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                    <input type="checkbox" name="is_important" id="importantCheckbox" 
+                           style="margin-right: 8px;"
+                           {% if selected_template and selected_template.is_important %}checked{% endif %}>
+                    <span>Vacib bildiriş</span>
+                </label>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                Əlaqəli Link (İstəyə bağlı)
+            </label>
+            <input type="url" name="action_url" id="actionUrlInput"
+                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                   placeholder="https://example.com"
+                   value="{% if selected_template %}{{ selected_template.action_url|default:'' }}{% endif %}">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                Link Mətni (İstəyə bağlı)
+            </label>
+            <input type="text" name="action_text" id="actionTextInput"
+                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                   placeholder="Məsələn: Abunəliyi yenilə"
+                   value="{% if selected_template %}{{ selected_template.action_text|default:'' }}{% endif %}">
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <a href="{% url 'master_admin:company_list' %}" 
+               style="padding: 12px 24px; background: #f3f4f6; color: #333; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                Ləğv Et
+            </a>
+            <button type="submit" 
+                    style="padding: 12px 24px; background: var(--master-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <i class="fas fa-paper-plane"></i> Göndər
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function loadTemplate() {
+    const select = document.getElementById('templateSelect');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (selectedOption.value) {
+        // Fill form with template data
+        document.getElementById('titleInput').value = selectedOption.dataset.title || '';
+        document.getElementById('messageInput').value = selectedOption.dataset.message || '';
+        document.getElementById('typeSelect').value = selectedOption.dataset.type || 'info';
+        document.getElementById('importantCheckbox').checked = selectedOption.dataset.important === '1';
+        document.getElementById('actionUrlInput').value = selectedOption.dataset.actionUrl || '';
+        document.getElementById('actionTextInput').value = selectedOption.dataset.actionText || '';
+    } else {
+        // Clear form
+        document.getElementById('titleInput').value = '';
+        document.getElementById('messageInput').value = '';
+        document.getElementById('typeSelect').value = 'info';
+        document.getElementById('importantCheckbox').checked = false;
+        document.getElementById('actionUrlInput').value = '';
+        document.getElementById('actionTextInput').value = '';
+    }
+}
+
+// Auto-load template if selected_template is provided
+{% if selected_template %}
+document.addEventListener('DOMContentLoaded', function() {
+    loadTemplate();
+});
+{% endif %}
+</script>
+
+{% endblock %}
+

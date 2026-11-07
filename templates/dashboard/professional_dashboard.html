@@ -1,0 +1,692 @@
+<!-- PROFESSIONAL PLAN DASHBOARD -->
+
+<!-- 1. KPI kartları -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">
+            <span>Ümumi Həkimlər</span>
+            <span class="trend">Cəmi: {{ total_doctors }}</span>
+        </div>
+        <div class="value-row">
+            <div class="value">{{ total_doctors }}</div>
+        </div>
+        <div class="sparkline"><canvas id="sparkline-doctors"></canvas></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="label">
+            <span>Ümumi Qeydiyyatlar</span>
+            <span class="trend">Son 30 gün: {{ prescriptions_last_30 }}</span>
+        </div>
+        <div class="value-row">
+            <div class="value">{{ total_prescriptions }}</div>
+            {% if prescriptions_growth is not None %}
+            <span class="delta {% if prescriptions_growth >= 0 %}up{% else %}down{% endif %}">
+                <i class="fas {% if prescriptions_growth >= 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                {{ prescriptions_growth|floatformat:1 }}%
+            </span>
+            {% endif %}
+        </div>
+        <div class="sparkline"><canvas id="sparkline-prescriptions"></canvas></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="label">
+            <span>Ümumi Satışlar</span>
+            <span class="trend">Son 30 gün: {{ sales_last_30 }}</span>
+        </div>
+        <div class="value-row">
+            <div class="value">{{ total_sales }}</div>
+            {% if sales_growth is not None %}
+            <span class="delta {% if sales_growth >= 0 %}up{% else %}down{% endif %}">
+                <i class="fas {% if sales_growth >= 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                {{ sales_growth|floatformat:1 }}%
+            </span>
+            {% endif %}
+        </div>
+        <div class="sparkline"><canvas id="sparkline-sales"></canvas></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="label">
+            <span>Ümumi Gəlir</span>
+            <span class="trend">Satışlardan</span>
+        </div>
+        <div class="value-row">
+            <div class="value">{{ sales_revenue|floatformat:2 }} ₼</div>
+            {% if revenue_growth is not None %}
+            <span class="delta {% if revenue_growth >= 0 %}up{% else %}down{% endif %}">
+                <i class="fas {% if revenue_growth >= 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                {{ revenue_growth|floatformat:1 }}%
+            </span>
+            {% endif %}
+        </div>
+        <div class="sparkline"><canvas id="sparkline-revenue"></canvas></div>
+    </div>
+</div>
+
+<!-- 2. Qeydiyyat trendi + status -->
+<div class="overview-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Qeydiyyat Trendi</div>
+                <div class="panel-subtitle" id="trend-subtitle">Son 30 gün</div>
+            </div>
+            <select class="panel-select" id="prescription-range">
+                <option value="7">Son 7 gün</option>
+                <option value="30" selected>Son 30 gün</option>
+            </select>
+        </div>
+        <div class="chart-box">
+            <canvas id="prescription-chart"></canvas>
+            <div class="chart-empty"><i class="fas fa-chart-line"></i><span>Bu dövr üçün qeydiyyat yoxdur</span></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Qeydiyyat Statusu</div>
+                <div class="panel-subtitle">Aktiv və deaktiv nisbəti</div>
+            </div>
+        </div>
+        <div class="chart-box">
+            <canvas id="status-chart"></canvas>
+            <div class="donut-center">
+                <div class="donut-value" id="status-pct">0%</div>
+                <div class="donut-label">aktiv</div>
+            </div>
+            <div class="chart-empty"><i class="fas fa-chart-pie"></i><span>Hələ qeydiyyat yoxdur</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Bölgələr + satış və gəlir -->
+<div class="overview-grid flip">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Bölgələr üzrə Qeydiyyat</div>
+                <div class="panel-subtitle">Ən çox qeydiyyat olan bölgələr</div>
+            </div>
+        </div>
+        <div class="chart-box">
+            <canvas id="region-chart"></canvas>
+            <div class="chart-empty"><i class="fas fa-map-marked-alt"></i><span>Bölgə məlumatı yoxdur</span></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Satış və Gəlir</div>
+                <div class="panel-subtitle">Son 12 ay: sütunlar satış sayı, xətt gəlir (₼)</div>
+            </div>
+        </div>
+        <div class="chart-box">
+            <canvas id="sales-revenue-chart"></canvas>
+            <div class="chart-empty"><i class="fas fa-chart-bar"></i><span>Hələ satış yoxdur</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Dərmanlar, həftənin günləri, ən aktiv həkimlər -->
+<div class="triple-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Ən Çox Yazılan Dərmanlar</div>
+                <div class="panel-subtitle">Qeydiyyat sayına görə</div>
+            </div>
+        </div>
+        <div class="chart-box">
+            <canvas id="drug-chart"></canvas>
+            <div class="chart-empty"><i class="fas fa-pills"></i><span>Dərman məlumatı yoxdur</span></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Həftənin Günləri</div>
+                <div class="panel-subtitle">Qeydiyyatlar hansı gün çox olur</div>
+            </div>
+        </div>
+        <div class="chart-box">
+            <canvas id="weekday-chart"></canvas>
+            <div class="chart-empty"><i class="fas fa-calendar-week"></i><span>Məlumat yoxdur</span></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Ən Aktiv Həkimlər</div>
+                <div class="panel-subtitle">Qeydiyyat sayına görə</div>
+            </div>
+        </div>
+        <div class="panel-content">
+            {% if top_doctors %}
+            <div class="doctor-list">
+                {% for doctor in top_doctors %}
+                <div class="doctor-item" data-count="{{ doctor.prescription_count|default:0 }}">
+                    <div class="doctor-row">
+                        <div class="doctor-info">
+                            <div class="doctor-avatar">{{ doctor.ad|slice:":2"|upper }}</div>
+                            <div>
+                                <div class="doctor-name">{{ doctor.ad|default:"-" }}</div>
+                                <div class="doctor-code">{{ doctor.code|default:"" }}</div>
+                            </div>
+                        </div>
+                        <div class="doctor-stat">
+                            <span class="stat-value">{{ doctor.prescription_count|default:0 }}</span>
+                            <span class="stat-label">Qeydiyyat</span>
+                        </div>
+                    </div>
+                    <div class="doctor-bar"><span></span></div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-user-md"></i>
+                <p>Hələ heç bir həkim yoxdur</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 5. Son qeydiyyatlar + sürətli əməliyyatlar -->
+<div class="bottom-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Son Qeydiyyatlar</div>
+                <div class="panel-subtitle">Ən son əlavə edilənlər</div>
+            </div>
+            <a href="{% url 'prescriptions:list' %}" class="panel-link">Hamısına bax</a>
+        </div>
+        <div class="panel-content">
+            {% if recent_prescriptions %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Tarix</th>
+                        <th>Həkim</th>
+                        <th>Bölgə</th>
+                        <th>Dərman Sayı</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in recent_prescriptions %}
+                    <tr>
+                        <td>{{ prescription.date|date:"d.m.Y" }}</td>
+                        <td>{% if prescription.doctor %}{{ prescription.doctor.ad|default:"-" }}{% else %}-{% endif %}</td>
+                        <td>{% if prescription.region %}{{ prescription.region.name|default:"-" }}{% else %}-{% endif %}</td>
+                        <td>{{ prescription.drug_count|default:0 }}</td>
+                        <td>
+                            <span class="badge {% if prescription.is_active %}badge-success{% else %}badge-secondary{% endif %}">
+                                {% if prescription.is_active %}Aktiv{% else %}Deaktiv{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Hələ heç bir qeydiyyat yoxdur</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Sürətli Əməliyyatlar</div>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="quick-actions-grid">
+                <a href="{% url 'doctors:add' %}" class="action-card">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Həkim Əlavə Et</span>
+                </a>
+                <a href="{% url 'prescriptions:add' %}" class="action-card">
+                    <i class="fas fa-file-medical"></i>
+                    <span>Qeydiyyat Əlavə Et</span>
+                </a>
+                <a href="{% url 'sales:add' %}" class="action-card">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Satış Əlavə Et</span>
+                </a>
+                <a href="{% url 'reports:list' %}" class="action-card">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Hesabatlar</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* dashboard.css-dəki sabit eni (300px) düzəldir, kart daralanda daşmasın */
+.stat-card .label { width: 100%; }
+
+.value-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.delta.up   { color: var(--success); background: rgba(16, 185, 129, 0.12); }
+.delta.down { color: var(--danger);  background: rgba(239, 68, 68, 0.12); }
+.delta i { font-size: 10px; }
+
+/* Qrafik qutuları */
+.chart-box {
+    position: relative;
+    height: 280px;
+}
+.chart-box canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+.chart-empty {
+    display: none;
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+}
+.chart-empty i { font-size: 28px; opacity: 0.5; }
+.chart-box.is-empty canvas { display: none; }
+.chart-box.is-empty .chart-empty { display: flex; }
+.chart-box.is-empty .donut-center { display: none; }
+
+/* Donut ortasındakı yazı */
+.donut-center {
+    position: absolute;
+    inset: 0 0 44px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.donut-value { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1; }
+.donut-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* Grid-lər */
+.overview-grid.flip { grid-template-columns: 1fr 2fr; }
+.triple-grid {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+@media (max-width: 1200px) {
+    .overview-grid.flip { grid-template-columns: 1fr; }
+    .triple-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .triple-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+    .chart-box { height: 240px; }
+}
+
+/* Həkim siyahısı (proqres xətti ilə) */
+.doctor-list { display: flex; flex-direction: column; gap: 12px; }
+.doctor-item {
+    padding: 12px;
+    background: var(--surface-muted);
+    border-radius: 12px;
+}
+.doctor-row { display: flex; justify-content: space-between; align-items: center; }
+.doctor-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.doctor-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0;
+}
+.doctor-name { font-weight: 600; color: var(--text); }
+.doctor-code { font-size: 12px; color: var(--text-muted); }
+.doctor-stat { text-align: right; flex-shrink: 0; }
+.stat-value { display: block; font-size: 18px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+.doctor-bar {
+    height: 6px;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+}
+.doctor-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.empty-state { text-align: center; padding: 32px 0; color: var(--text-muted); }
+.empty-state i { font-size: 28px; opacity: 0.5; margin-bottom: 8px; }
+
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.data-table th { font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; }
+
+.quick-actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.action-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; background: var(--surface-muted); border-radius: 12px;
+    text-decoration: none; color: var(--text); transition: all 0.3s; border: 1px solid var(--border);
+}
+.action-card:hover {
+    background: var(--primary); color: #fff; transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.action-card i { font-size: 24px; margin-bottom: 8px; }
+.action-card span { font-size: 13px; font-weight: 600; }
+.badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // ---------- Backend-dən gələn data ----------
+    const DATA = {
+        doctorsTrend:   {{ doctors_trend_data|default:"[]"|safe }},
+        rxMonthly:      {{ monthly_prescription_data|default:"[]"|safe }},
+        salesMonthly:   {{ monthly_sales_data|default:"[]"|safe }},
+        revenueMonthly: {{ monthly_revenue_data|default:"[]"|safe }},
+        monthLabels:    {{ monthly_labels|default:"[]"|safe }},
+        rxDaily:        {{ prescription_chart_data|default:"[]"|safe }},
+        rxDailyLabels:  {{ prescription_chart_labels|default:"[]"|safe }},
+        regionLabels:   {{ region_labels|default:"[]"|safe }},
+        regionData:     {{ region_data|default:"[]"|safe }},
+        drugLabels:     {{ drug_labels|default:"[]"|safe }},
+        drugData:       {{ drug_data|default:"[]"|safe }},
+        weekdayData:    {{ weekday_data|default:"[]"|safe }},
+        active:         {{ active_prescriptions|default:0 }},
+        inactive:       {{ inactive_prescriptions|default:0 }},
+        totalDoctors:   {{ total_doctors|default:0 }},
+        rx30:           {{ prescriptions_last_30|default:0 }},
+        totalSales:     {{ total_sales|default:0 }}
+    };
+
+    // ---------- Köməkçilər ----------
+    const PALETTE = ['#3b82f6', '#22d3ee', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#94a3b8'];
+    const WEEKDAYS = ['B.e.', 'Ç.a.', 'Çər.', 'C.a.', 'Cümə', 'Şən.', 'Baz.'];
+    const nf = new Intl.NumberFormat('az-AZ', { maximumFractionDigits: 2 });
+    const css = n => getComputedStyle(document.body).getPropertyValue(n).trim();
+    const any = arr => Array.isArray(arr) && arr.some(v => Number(v) > 0);
+    const hexA = (h, a) => {
+        if (!/^#[0-9a-f]{6}$/i.test(h)) return h;
+        const n = parseInt(h.slice(1), 16);
+        return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+    };
+    const lastDays = n => Array.from({ length: n }, (_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - (n - 1 - i));
+        return d.toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit' });
+    });
+    const lastMonths = n => Array.from({ length: n }, (_, i) => {
+        const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - (n - 1 - i));
+        return d.toLocaleDateString('az-AZ', { month: 'short' });
+    });
+
+    const tooltipBase = {
+        backgroundColor: '#0f172a', titleColor: '#fff', bodyColor: '#e2e8f0',
+        padding: 10, cornerRadius: 10, displayColors: true, boxPadding: 4
+    };
+
+    let charts = [];
+    let range = 30;
+
+    function axes() {
+        const grid = css('--border'), tick = css('--text-muted');
+        return {
+            x: { grid: { display: false }, border: { display: false },
+                 ticks: { color: tick, maxRotation: 0, autoSkipPadding: 12 } },
+            y: { beginAtZero: true, grid: { color: grid }, border: { display: false },
+                 ticks: { color: tick, padding: 8, precision: 0 } }
+        };
+    }
+
+    // Data olmayanda boş vəziyyət göstərir, olanda qrafiki qurur
+    function mount(id, hasData, make) {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        const box = canvas.closest('.chart-box');
+        if (box) box.classList.toggle('is-empty', !hasData);
+        if (hasData) charts.push(make(canvas));
+    }
+
+    function spark(id, data, fallback, color) {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        const values = (data && data.length) ? data : Array(12).fill(fallback);
+        charts.push(new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: Array(values.length).fill(''),
+                datasets: [{ data: values, borderColor: color, backgroundColor: hexA(color, 0.15),
+                             fill: true, borderWidth: 2, tension: 0.4, pointRadius: 0 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        }));
+    }
+
+    // ---------- Qrafiklər ----------
+    function build() {
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = css('--text-muted');
+        const primary = css('--primary') || '#3b82f6';
+        const ax = axes();
+
+        // KPI sparkline-lar
+        spark('sparkline-doctors',       DATA.doctorsTrend,   DATA.totalDoctors, '#38bdf8');
+        spark('sparkline-prescriptions', DATA.rxMonthly,      DATA.rx30,         '#34d399');
+        spark('sparkline-sales',         DATA.salesMonthly,   DATA.totalSales,   '#fbbf24');
+        spark('sparkline-revenue',       DATA.revenueMonthly, 0,                 '#a78bfa');
+
+        // Qeydiyyat trendi (7 / 30 gün)
+        const rxLabels = DATA.rxDailyLabels.length ? DATA.rxDailyLabels : lastDays(30);
+        const rxData = DATA.rxDaily.length ? DATA.rxDaily : Array(30).fill(0);
+        const rxL = rxLabels.slice(-range), rxD = rxData.slice(-range);
+        document.getElementById('trend-subtitle').textContent = 'Son ' + range + ' gün';
+        mount('prescription-chart', any(rxD), function (canvas) {
+            const g = canvas.getContext('2d').createLinearGradient(0, 0, 0, 280);
+            g.addColorStop(0, hexA(primary, 0.35));
+            g.addColorStop(1, hexA(primary, 0));
+            return new Chart(canvas, {
+                type: 'line',
+                data: { labels: rxL, datasets: [{
+                    label: 'Qeydiyyatlar', data: rxD, borderColor: primary, backgroundColor: g,
+                    fill: true, tension: 0.4, borderWidth: 2.5,
+                    pointRadius: range === 7 ? 4 : 0, pointHoverRadius: 6,
+                    pointBackgroundColor: primary, pointBorderColor: css('--surface'), pointBorderWidth: 2
+                }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false }, tooltip: tooltipBase },
+                    scales: ax
+                }
+            });
+        });
+
+        // Status donut
+        const total = DATA.active + DATA.inactive;
+        document.getElementById('status-pct').textContent =
+            total ? Math.round(DATA.active / total * 100) + '%' : '0%';
+        mount('status-chart', total > 0, function (canvas) {
+            return new Chart(canvas, {
+                type: 'doughnut',
+                data: { labels: ['Aktiv', 'Deaktiv'], datasets: [{
+                    data: [DATA.active, DATA.inactive],
+                    backgroundColor: [css('--success') || '#10b981', hexA(css('--text-muted') || '#94a3b8', 0.45)],
+                    borderColor: css('--surface'), borderWidth: 3, hoverOffset: 6
+                }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '72%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16, color: css('--text-muted') } },
+                        tooltip: tooltipBase
+                    }
+                }
+            });
+        });
+
+        // Bölgələr donut
+        mount('region-chart', any(DATA.regionData), function (canvas) {
+            return new Chart(canvas, {
+                type: 'doughnut',
+                data: { labels: DATA.regionLabels, datasets: [{
+                    data: DATA.regionData, backgroundColor: PALETTE,
+                    borderColor: css('--surface'), borderWidth: 3, hoverOffset: 6
+                }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '58%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14, color: css('--text-muted') } },
+                        tooltip: tooltipBase
+                    }
+                }
+            });
+        });
+
+        // Satış sayı (sütun) + gəlir (xətt)
+        const mLabels = DATA.monthLabels.length ? DATA.monthLabels : lastMonths(12);
+        mount('sales-revenue-chart', any(DATA.salesMonthly) || any(DATA.revenueMonthly), function (canvas) {
+            return new Chart(canvas, {
+                data: { labels: mLabels, datasets: [
+                    { type: 'bar', label: 'Satış sayı', data: DATA.salesMonthly, yAxisID: 'y',
+                      backgroundColor: hexA(primary, 0.75), borderRadius: 8, maxBarThickness: 28 },
+                    { type: 'line', label: 'Gəlir (₼)', data: DATA.revenueMonthly, yAxisID: 'y1',
+                      borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.4, borderWidth: 2.5,
+                      pointRadius: 3, pointHoverRadius: 6 }
+                ] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16, color: css('--text-muted') } },
+                        tooltip: Object.assign({}, tooltipBase, { callbacks: {
+                            label: function (c) {
+                                return c.dataset.yAxisID === 'y1'
+                                    ? ' ' + c.dataset.label + ': ' + nf.format(c.parsed.y) + ' ₼'
+                                    : ' ' + c.dataset.label + ': ' + c.parsed.y;
+                            }
+                        } })
+                    },
+                    scales: {
+                        x: ax.x,
+                        y: ax.y,
+                        y1: { position: 'right', beginAtZero: true, border: { display: false },
+                              grid: { drawOnChartArea: false },
+                              ticks: { color: css('--text-muted'), padding: 8, callback: v => nf.format(v) } }
+                    }
+                }
+            });
+        });
+
+        // Ən çox yazılan dərmanlar (üfüqi sütun)
+        mount('drug-chart', any(DATA.drugData), function (canvas) {
+            return new Chart(canvas, {
+                type: 'bar',
+                data: { labels: DATA.drugLabels, datasets: [{
+                    label: 'Qeydiyyat', data: DATA.drugData,
+                    backgroundColor: hexA(primary, 0.8), borderRadius: 8, maxBarThickness: 18
+                }] },
+                options: {
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: tooltipBase },
+                    scales: { x: ax.y, y: Object.assign({}, ax.x, { ticks: { color: css('--text-muted') } }) }
+                }
+            });
+        });
+
+        // Həftənin günləri
+        const wd = DATA.weekdayData.length === 7 ? DATA.weekdayData : [];
+        const wdMax = Math.max.apply(null, wd.concat([0]));
+        mount('weekday-chart', any(wd), function (canvas) {
+            return new Chart(canvas, {
+                type: 'bar',
+                data: { labels: WEEKDAYS, datasets: [{
+                    label: 'Qeydiyyat', data: wd,
+                    backgroundColor: wd.map(v => v === wdMax ? primary : hexA(primary, 0.3)),
+                    borderRadius: 8, maxBarThickness: 32
+                }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: tooltipBase },
+                    scales: ax
+                }
+            });
+        });
+    }
+
+    function renderAll() {
+        charts.forEach(c => c.destroy());
+        charts = [];
+        build();
+    }
+
+    // Ən aktiv həkimlərin proqres xətti
+    function fillDoctorBars() {
+        const items = document.querySelectorAll('.doctor-item');
+        const max = Math.max.apply(null, Array.from(items).map(i => Number(i.dataset.count) || 0).concat([1]));
+        items.forEach(function (item) {
+            const pct = (Number(item.dataset.count) || 0) / max * 100;
+            requestAnimationFrame(() => { item.querySelector('.doctor-bar span').style.width = pct + '%'; });
+        });
+    }
+
+    // 7 / 30 gün seçimi
+    const rangeSelect = document.getElementById('prescription-range');
+    if (rangeSelect) {
+        rangeSelect.addEventListener('change', function () {
+            range = Number(rangeSelect.value) || 30;
+            renderAll();
+        });
+    }
+
+    // Light/dark tema dəyişəndə qrafiklər yenidən qurulur
+    let themeTimer;
+    const onTheme = () => { clearTimeout(themeTimer); themeTimer = setTimeout(renderAll, 60); };
+    const obsOpts = { attributes: true, attributeFilter: ['data-theme', 'class'] };
+    new MutationObserver(onTheme).observe(document.documentElement, obsOpts);
+    new MutationObserver(onTheme).observe(document.body, obsOpts);
+
+    renderAll();
+    fillDoctorBars();
+});
+</script>
+

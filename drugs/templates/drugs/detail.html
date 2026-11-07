@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ drug.ad }} - Dərman Detalları{% endblock %}
+
+{% block active_drugs %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <a href="{% url 'drugs:list' %}" class="breadcrumb-link">
+            <i class="fas fa-arrow-left"></i> Dərmanlar
+        </a>
+        <h1>{{ drug.ad }}</h1>
+        {% if drug.barkod %}
+        <p>Barkod: <strong>{{ drug.barkod }}</strong></p>
+        {% endif %}
+    </div>
+    <div class="header-actions">
+        <a href="#" class="ghost-btn" onclick="window.print(); return false;">
+            <i class="fas fa-print"></i> Çap et
+        </a>
+    </div>
+</div>
+
+<div class="detail-container">
+    <!-- Status Banner -->
+    <div class="status-banner {% if drug.is_active %}active{% else %}inactive{% endif %}">
+        <i class="fas fa-{% if drug.is_active %}check-circle{% else %}times-circle{% endif %}"></i>
+        <span>{{ drug.is_active|yesno:"Aktiv,Deaktiv" }}</span>
+    </div>
+
+    <!-- Price Summary Card -->
+    <div class="price-summary-card">
+        <div class="price-summary-item">
+            <div class="price-summary-icon">
+                <i class="fas fa-tag"></i>
+            </div>
+            <div class="price-summary-content">
+                <div class="price-summary-label">Qiymət</div>
+                <div class="price-summary-value">{{ drug.qiymet|floatformat:2 }} ₼</div>
+            </div>
+        </div>
+        
+        <div class="price-summary-divider"></div>
+        
+        <div class="price-summary-item highlight">
+            <div class="price-summary-icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="price-summary-content">
+                <div class="price-summary-label">Komissiya</div>
+                <div class="price-summary-value final positive">{{ drug.komissiya|floatformat:2 }} ₼</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Info Grid -->
+    <div class="detail-grid">
+        <!-- Basic Information -->
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="fas fa-pills"></i>
+                <h3>Əsas Məlumatlar</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <div class="info-label">Ad:</div>
+                    <div class="info-value">{{ drug.ad }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Tam Ad:</div>
+                    <div class="info-value">{{ drug.tam_ad }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Buraxılış Forması:</div>
+                    <div class="info-value">
+                        <span class="release-form-badge">{{ drug.get_buraxilis_formasi_display }}</span>
+                    </div>
+                </div>
+                {% if drug.dozaj %}
+                <div class="info-row">
+                    <div class="info-label">Dozaj:</div>
+                    <div class="info-value">{{ drug.dozaj }}</div>
+                </div>
+                {% endif %}
+                {% if drug.barkod %}
+                <div class="info-row">
+                    <div class="info-label">Barkod:</div>
+                    <div class="info-value">
+                        <span class="code-badge">{{ drug.barkod }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Price Information -->
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>Qiymət Məlumatları</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <div class="info-label">Qiymət:</div>
+                    <div class="info-value price-value">{{ drug.qiymet|floatformat:2 }} ₼</div>
+                </div>
+                <div class="info-row highlight-row">
+                    <div class="info-label">Komissiya:</div>
+                    <div class="info-value final-price positive-value">{{ drug.komissiya|floatformat:2 }} ₼</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i>
+                <h3>Sistem Məlumatları</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <div class="info-label">Yaradılıb:</div>
+                    <div class="info-value">{{ drug.created_at|date:"d.m.Y H:i" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Son Yenilənmə:</div>
+                    <div class="info-value">{{ drug.updated_at|date:"d.m.Y H:i" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Status:</div>
+                    <div class="info-value">
+                        <span class="status-badge {% if drug.is_active %}active{% else %}inactive{% endif %}">
+                            {{ drug.is_active|yesno:"Aktiv,Deaktiv" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 12px;
+    transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+    color: var(--primary);
+}
+
+.detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.status-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.status-banner.active {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.status-banner.inactive {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+}
+
+.status-banner i {
+    font-size: 20px;
+}
+
+/* Price Summary Card */
+.price-summary-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 32px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+}
+
+.price-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.price-summary-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    color: var(--primary);
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.price-summary-item.highlight .price-summary-icon {
+    background: linear-gradient(135deg, var(--primary), #4f46e5);
+    color: white;
+}
+
+.price-summary-content {
+    flex: 1;
+}
+
+.price-summary-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.price-summary-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.price-summary-value.positive {
+    color: #10b981;
+}
+
+.price-summary-value.final {
+    font-size: 32px;
+    color: var(--primary);
+}
+
+.price-summary-divider {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+.detail-card {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: box-shadow 0.3s;
+}
+
+.detail-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.card-header i {
+    color: var(--primary);
+    font-size: 20px;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.card-body {
+    padding: 24px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row.highlight-row {
+    background: var(--surface-muted);
+    margin: 0 -24px -24px -24px;
+    padding: 16px 24px;
+    border-bottom: none;
+    border-top: 2px solid var(--primary);
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+    text-align: right;
+}
+
+.price-value {
+    font-size: 16px;
+    color: var(--text);
+}
+
+.positive-value {
+    color: #10b981;
+    font-size: 15px;
+}
+
+.final-price {
+    font-size: 20px;
+    color: var(--primary);
+}
+
+.code-badge {
+    padding: 4px 12px;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.release-form-badge {
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #93c5fd;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.country-badge {
+    padding: 4px 12px;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.notes-content {
+    padding: 16px;
+    background: var(--surface-muted);
+    border-radius: 12px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .price-summary-card {
+        flex-direction: column;
+        padding: 24px;
+    }
+    
+    .price-summary-item {
+        width: 100%;
+    }
+    
+    .price-summary-divider {
+        transform: rotate(90deg);
+    }
+    
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .info-value {
+        text-align: left;
+    }
+    
+    .price-summary-value {
+        font-size: 20px;
+    }
+    
+    .price-summary-value.final {
+        font-size: 28px;
+    }
+}
+
+@media print {
+    .header-actions,
+    .breadcrumb-link {
+        display: none;
+    }
+    
+    .detail-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}
+

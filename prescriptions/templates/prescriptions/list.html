@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Resept Siyahısı - MedAdmin{% endblock %}
+{% block active_prescriptions %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+    /* PAGE */
+    .prescription-page { padding: 24px; }
+
+    /* HEADER */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+    }
+    .export-btn {
+        border: 1px solid var(--border-color);
+        background: var(--primary);
+        color: var(--text);
+        padding: 10px 18px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+    .export-btn:hover {
+        background: var(--secondary);
+        color: var(--text);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        
+    }
+
+    /* FILTER CARD */
+    .filter-card {
+        background: var(--surface);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+    }
+    .filter-form { display: flex; flex-direction: column; gap: 16px; }
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+    }
+    .filter-group label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        letter-spacing: 0.05em;
+    }
+    .filter-input, .filter-select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--dark-lighter);
+        color: var(--text);
+    }
+    .filter-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .filter-btn {
+        padding: 10px 20px;
+        font-weight: 600;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        border: none;
+    }
+    .reset-btn { background: var(--dark-lighter); color: var(--text); }
+    .apply-btn { background: var(--primary); color: var(--text); }
+
+    /* TABLE */
+    .table-container {
+        background: var(--surface);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        padding: 24px;
+        box-shadow: 0 12px 45px rgba(15, 23, 42, 0.10);
+    }
+    .table-empty-state {
+        padding: 40px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .table-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .table-title { font-size: 18px; font-weight: 600; margin: 0; }
+    .table-info { font-size: 14px; color: #475569; }
+
+    /* MAIN TABLE */
+    .rotated-table-container { overflow-x: auto; }
+    .rotated-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+    }
+    .rotated-table th, .rotated-table td {
+        padding: 10px;
+        border: 1px solid var(--border);
+        white-space: nowrap;
+        text-align: center;
+        font-size: 13px;
+        
+    }
+    .rotated-table thead th {
+        background: var(--dark-lighter);
+        font-weight: 600;
+       
+    }
+    .rotated-table th.drug-header {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-align: left;
+    padding: 4px 0;
+    white-space: nowrap;
+    }
+
+
+
+    .doctor-name {
+        text-align: left;
+        font-weight: 600;
+        white-space: normal;
+    }
+    .doctor-name small {
+        display: block;
+        margin-top: 4px;
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+    .derman-count { font-weight: 600; color: var(--text); }
+    .total-amount { font-weight: 700; color: var(--text); }
+
+    /* FOOTER SUMMARY */
+    .table-footer {
+        margin-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .summary-info { display: flex; gap: 24px; flex-wrap: wrap; }
+    .summary-item {
+        background: var(--surface);
+        padding: 12px 20px;
+        border-radius: 12px;
+    }
+    .summary-value {
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .summary-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:768px) {
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .filter-btn { width: 100%; justify-content: center; }
+        .summary-info { flex-direction: column; }
+    }
+</style>
+
+<div class="prescription-page">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <h1 class="page-title">Resept Qeydiyyatları</h1>
+        <a href="{% url 'prescriptions:export_excel' %}" id="export-excel-btn" class="export-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #10b981; color: white; border-radius: 8px; font-weight: 500; transition: all 0.3s;">
+            <i class="fas fa-file-excel"></i> Excel Export
+        </a>
+    </div>
+
+    <!-- FILTER FORM -->
+    <div class="filter-card">
+        <form method="get" class="filter-form" id="prescription-filters">
+            {% csrf_token %}
+            <div class="filter-grid">
+
+                <div class="filter-group">
+                    <label>Bölgə</label>
+                    <select name="region" class="filter-select">
+                        <option value="" {% if not filters.region %}selected{% endif %}>Bölgə seçin</option>
+                        {% for region in regions %}
+                            <option value="{{ region.id }}"
+                                {% if filters.region == region.id|stringformat:"s" %}selected{% endif %}>
+                                {{ region.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Başlama tarixi</label>
+                    <input type="text" name="start_date" value="{{ filters.start_date }}" class="filter-input date-picker" placeholder="Tarix seçin">
+                </div>
+
+                <div class="filter-group">
+                    <label>Bitmə tarixi</label>
+                    <input type="text" name="end_date" value="{{ filters.end_date }}" class="filter-input date-picker" placeholder="Tarix seçin">
+                </div>
+
+                <div class="filter-group">
+                    <label>Həkim adı və ya kodu</label>
+                    <input type="text" name="doctor" value="{{ filters.doctor }}" placeholder="Axtar..." class="filter-input">
+                </div>
+
+            </div>
+
+            <div class="filter-actions">
+                <a href="{% url 'prescriptions:list' %}" class="filter-btn reset-btn">
+                    <i class="fas fa-undo"></i> Təmizlə
+                </a>
+                <button type="submit" class="filter-btn apply-btn">
+                    <i class="fas fa-search"></i> Axtar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-container" data-results-container>
+        {% include 'prescriptions/table_partial.html' %}
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('prescription-filters');
+    const resultsContainer = document.querySelector('[data-results-container]');
+    const applyBtn = form.querySelector('.apply-btn');
+    const resetBtn = form.querySelector('.reset-btn');
+    const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const dateInputs = document.querySelectorAll('.date-picker');
+    const regionSelect = form.querySelector('select[name="region"]');
+
+    if (typeof flatpickr === 'function' && dateInputs.length) {
+        flatpickr(dateInputs, {
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            locale: {
+                firstDayOfWeek: 1
+            }
+        });
+    }
+
+    async function submitFilters(event) {
+        if (event) {
+            event.preventDefault();
+        }
+
+        if (!regionSelect.value) {
+            resultsContainer.innerHTML = `
+                <div class="table-empty-state">
+                    Zəhmət olmasa əvvəl bölgə seçin.
+                </div>
+            `;
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        applyBtn.disabled = true;
+        applyBtn.classList.add('is-loading');
+
+        try {
+            const response = await fetch("{% url 'prescriptions:filter_ajax' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Server error');
+            }
+
+            const data = await response.json();
+            if (data.html) {
+                resultsContainer.innerHTML = data.html;
+            }
+        } catch (error) {
+            console.error('Filter error:', error);
+        } finally {
+            applyBtn.disabled = false;
+            applyBtn.classList.remove('is-loading');
+        }
+    }
+
+    function resetFilters(event) {
+        event.preventDefault();
+        form.reset();
+        applyBtn.disabled = false;
+        applyBtn.classList.remove('is-loading');
+        resultsContainer.innerHTML = `
+            <div class="table-empty-state">
+                Zəhmət olmasa əvvəl bölgə seçin.
+            </div>
+        `;
+    }
+
+    form.addEventListener('submit', submitFilters);
+    resetBtn.addEventListener('click', resetFilters);
+
+    const exportBtn = document.getElementById('export-excel-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!regionSelect.value) {
+                alert('Excel üçün əvvəlcə bölgə seçin.');
+                return;
+            }
+            const params = new URLSearchParams(new FormData(form));
+            params.delete('csrfmiddlewaretoken');
+            window.location.href = exportBtn.getAttribute('href') + '?' + params.toString();
+        });
+    }
+});
+</script>
+    
+{% endblock %}

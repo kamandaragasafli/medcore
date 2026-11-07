@@ -1,0 +1,697 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %}Aylıq Həkim Hesabatı{% endblock %}
+{% block active_reports %}active{% endblock %}
+
+{% block content %}
+<div class="reports-container">
+    <!-- Page Header -->
+    <div class="reports-header">
+        <div>
+            <h1 class="reports-title">Aylıq Həkim Hesabatı</h1>
+            <p class="reports-subtitle">{{ table_info|default:"Bütün həkimlər üzrə hesabat" }}</p>
+        </div>
+        <div class="header-actions">
+            <form method="get" action="{% url 'reports:close' %}" style="display: inline;">
+                <input type="hidden" name="month" value="{{ filters.month }}">
+                <input type="hidden" name="year" value="{{ filters.year }}">
+                <input type="hidden" name="region" value="{{ filters.region }}">
+                <button type="submit" class="btn-close-report">
+                    <i class="fas fa-lock"></i> Hesabatı Bağla
+                </button>
+            </form>
+            <a href="{% url 'reports:export_excel' %}?{{ request.GET.urlencode }}" class="btn-export">
+                <i class="fas fa-file-excel"></i> Excel Export
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-card">
+        <form method="get" class="filters-form">
+            <div class="filters-grid">
+                <div class="filter-item">
+                    <label for="region">Bölgə</label>
+                    <select name="region" id="region" class="form-control" required>
+                        <option value="">Bölgə seç</option>
+                        {% for region in regions %}
+                            <option value="{{ region.id }}" {% if filters.region == region.id|stringformat:'s' %}selected{% endif %}>
+                                {{ region.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label for="month">Ay</label>
+                    <select name="month" id="month" class="form-control">
+                        {% for value, label in months %}
+                            <option value="{{ value }}" {% if filters.month == value|stringformat:'s' %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label for="year">İl</label>
+                    <select name="year" id="year" class="form-control">
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if filters.year == year|stringformat:'s' %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label for="doctor">Həkim</label>
+                    <input type="text" name="doctor" id="doctor" class="form-control" 
+                           placeholder="Ad və ya kod" value="{{ filters.doctor }}">
+                </div>
+            </div>
+
+            <div class="filters-actions">
+                <a href="{% url 'reports:list' %}" class="btn-reset">
+                    <i class="fas fa-redo"></i> Təmizlə
+                </a>
+                <button type="submit" class="btn-search">
+                    <i class="fas fa-search"></i> Axtar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-summary">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.doctor_count }}</div>
+                <div class="stat-label">Həkim</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-pills"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.total_prescriptions }}</div>
+                <div class="stat-label">Dərman Qeydiyyatı</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.total_debt|floatformat:2 }} ₼</div>
+                <div class="stat-label">Ümumi Yekun Borc</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="table-card">
+        <div class="table-wrapper">
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Bölgə</th>
+                        <th>Kod</th>
+                        <th>Həkim</th>
+                        <th>İxtisas</th>
+                        <th>Kateqoriya</th>
+                        <th>Dərəcə</th>
+                        <th>Əvvəlki Borc</th>
+                        {% for drug in drugs %}
+                            <th class="rotated-header">
+                                <div class="rotated-text">{{ drug.ad }}</div>
+                            </th>
+                        {% endfor %}
+                        <th>Total</th>
+                        <th>Hesablanan</th>
+                        <th>Silinen</th>
+                        <th>Avans</th>
+                        <th>Investisiya</th>
+                        <th>Geri Qaytarma</th>
+                        <th>Datasiya</th>
+                        <th>Yekun</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in doctor_rows %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ row.doctor.region.name|default:"-" }}</td>
+                            <td><code>{{ row.doctor.code }}</code></td>
+                            <td class="doctor-name">
+                                <a href="{% url 'doctors:detail' row.doctor.id %}" class="doctor-link">
+                                    {{ row.doctor.ad }}
+                                </a>
+                            </td>
+                            <td>{% if row.doctor.ixtisas %}{{ row.doctor.ixtisas.code|default:row.doctor.ixtisas.name }}{% else %}-{% endif %}</td>
+                            <td>{{ row.doctor.category }}</td>
+                            <td>{{ row.doctor.get_degree_display }}</td>
+                            <td class="amount">{{ row.evvelki_borc|floatformat:2 }}</td>
+                            {% for drug in drugs %}
+                                <td class="drug-count">{{ row.drugs|get_item:drug.ad|default:"0" }}</td>
+                            {% endfor %}
+                            <td class="amount">{{ row.total_quantity }}</td>
+                            <td class="amount">{{ row.hesablanan|floatformat:2 }}</td>
+                            <td class="amount">{{ row.silinen_miqdar|floatformat:2 }}</td>
+                            <td class="amount">{{ row.payments.avans|floatformat:2 }}</td>
+                            <td class="amount">{{ row.payments.investisiya|floatformat:2 }}</td>
+                            <td class="amount">{{ row.payments.geriqaytarma|floatformat:2 }}</td>
+                            <td class="amount">{{ row.datasiya|floatformat:2 }}</td>
+                            <td class="amount total-debt">{{ row.yekun_borc|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{{ drugs|length|add:'15' }}" class="empty-message">
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    {% if not filters.region %}
+                                        <p>Zəhmət olmasa bölgə seçin.</p>
+                                    {% else %}
+                                        <p>Seçilmiş filtrə uyğun nəticə tapılmadı.</p>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Reports Container - Full width */
+.reports-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 24px 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: visible;
+}
+
+/* Ensure all child elements take full width */
+.reports-container > * {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Header */
+.reports-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 20px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.reports-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px 0;
+}
+
+.reports-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-close-report,
+.btn-export {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-close-report {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-close-report:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.btn-export {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-export:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Filters */
+.filters-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+    width: 100%;
+    min-width: 0;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-item label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    color: var(--text);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+select.form-control {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 32px;
+}
+
+.filters-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-reset,
+.btn-search {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-reset {
+    background: var(--surface-muted);
+    color: var(--text);
+}
+
+.btn-reset:hover {
+    background: var(--border);
+}
+
+.btn-search {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-search:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Stats Summary */
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Table */
+.table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.reports-table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+.reports-table thead {
+    background: var(--surface-muted);
+}
+
+.reports-table th {
+    padding: 12px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+}
+
+.reports-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+}
+
+.reports-table tbody tr:hover {
+    background: var(--surface-muted);
+}
+
+.reports-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.rotated-header {
+    position: relative;
+    height: 120px;
+    vertical-align: bottom;
+    padding: 8px 4px !important;
+}
+
+.rotated-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.doctor-name {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.doctor-link {
+    color: var(--primary);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.doctor-link:hover {
+    color: #6366f1;
+    text-decoration: underline;
+}
+
+.amount {
+    text-align: right;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.total-debt {
+    color: var(--primary);
+    font-size: 14px;
+}
+
+.drug-count {
+    text-align: center;
+    font-weight: 600;
+}
+
+code {
+    background: var(--surface-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 60px 20px !important;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 48px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .filters-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-container {
+        padding: 0;
+    }
+
+    .reports-title {
+        font-size: 22px;
+    }
+
+    .reports-subtitle {
+        font-size: 13px;
+        word-break: break-word;
+    }
+    
+    .reports-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .header-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .header-actions form {
+        display: contents;
+    }
+    
+    .btn-close-report,
+    .btn-export {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .filters-card {
+        padding: 14px;
+        margin-bottom: 16px;
+    }
+    
+    .filters-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .filters-actions {
+        flex-direction: column;
+    }
+    
+    .btn-reset,
+    .btn-search {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .stats-summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card {
+        padding: 14px;
+    }
+
+    .stat-value {
+        font-size: 20px;
+    }
+
+    .table-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        padding-bottom: 4px;
+    }
+
+    .reports-table {
+        min-width: 900px;
+    }
+
+    .reports-table th,
+    .reports-table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .rotated-header {
+        height: 100px;
+    }
+
+    .rotated-text {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedAdmin-ə Xoş Gəlmisiniz!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .success-container {
+            max-width: 600px;
+            background: white;
+            border-radius: 24px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 32px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon i {
+            font-size: 48px;
+            color: white;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .info-box ul {
+            list-style: none;
+        }
+
+        .info-box li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: #4b5563;
+        }
+
+        .info-box li i {
+            color: #10b981;
+        }
+
+        .dashboard-btn {
+            display: inline-block;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .dashboard-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .dashboard-btn i {
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+
+        <h1>MedAdmin-ə Xoş Gəlmisiniz!</h1>
+        <p>Hesabınız uğurla yaradıldı və 14 günlük pulsuz sınaq dövr başladı.</p>
+
+        <div class="info-box">
+            <h3>Növbəti Addımlar?</h3>
+            <ul>
+                <li>
+                    <i class="fas fa-user-md"></i>
+                    <span>Komanda üzvlərini və həkimləri əlavə edin</span>
+                </li>
+                <li>
+                    <i class="fas fa-users"></i>
+                    <span>Sisteminizə xəstələr əlavə etməyə başlayın</span>
+                </li>
+                <li>
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Görüşləri planlaşdırın və ziyarətləri idarə edin</span>
+                </li>
+                <li>
+                    <i class="fas fa-chart-line"></i>
+                    <span>Hesabatları və analitikanı araşdırın</span>
+                </li>
+            </ul>
+        </div>
+
+        <a href="{% url 'core:dashboard' %}" class="dashboard-btn">
+            İdarə Paneline Keç <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - Yeni Bölgə{% endblock %}
+
+{% block active_regions %}active{% endblock %}
+
+{% block content %}
+<style>
+.alert {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+}
+.alert-success {
+    background: #dcfce7;
+    color: #15803d;
+}
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.alert-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+</style>
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Bölgələr</div>
+            <h1>{% if request.GET.edit %}Bölgəni Redaktə Et{% else %}Yeni Bölgə Əlavə Et{% endif %}</h1>
+            <p>Yeni bölgə məlumatlarını daxil edin</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'regions:list' %}" class="ghost-btn" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i>
+                Geri
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-container" style="max-width: 600px; margin: 0 auto;">
+        <div class="form-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px;">
+            <form method="POST" action="{% url 'regions:add' %}">
+                {% csrf_token %}
+                
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Bölgə Adı <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        class="form-input" 
+                        placeholder="Məsələn: Bakı, Gəncə, Sumqayıt"
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                    >
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Bölgə Kodu <span style="color: var(--text-muted); font-size: 12px;">(İstəyə bağlı)</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="code" 
+                        class="form-input" 
+                        placeholder="Məsələn: BAK, GAN, SMQ (boş buraxsanız avtomatik yaradılacaq)"
+                        maxlength="10"
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                    >
+                    <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: 12px;">
+                        Unikal kod (maksimum 10 simvol). Boş buraxsanız, bölgə adından və ya təsadüfi kod avtomatik yaradılacaq.
+                    </small>
+                </div>
+
+                <div class="form-actions" style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+                    <a href="{% url 'regions:list' %}" class="ghost-btn" style="flex: 1; padding: 12px; text-align: center; text-decoration: none; border-radius: 8px; border: 1px solid var(--border); color: var(--text);">
+                        Ləğv et
+                    </a>
+                    <button type="submit" class="primary-btn" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                        <i class="fas fa-save"></i>
+                        Yadda Saxla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

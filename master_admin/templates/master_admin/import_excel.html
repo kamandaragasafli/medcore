@@ -1,0 +1,84 @@
+{% extends 'master_admin/base.html' %}
+
+{% block title %}{{ title }} - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="color: var(--master-primary); margin-bottom: 10px;">
+                <i class="fas fa-file-excel"></i> {{ title }}
+            </h1>
+            <p style="color: #666;">{{ company.name }} üçün</p>
+        </div>
+        <div>
+            <a href="{% url 'master_admin:company_detail' company.id %}" class="btn-master" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Şirkət səhifəsinə qayıt
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="master-card" style="max-width: 700px; margin: 0 auto;">
+    <h3 style="color: var(--master-primary); margin-bottom: 15px;">
+        <i class="fas fa-upload"></i> Excel Faylı Yüklə
+    </h3>
+    <p style="color: #666; margin-bottom: 15px;">{{ description }}</p>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Excel Faylı (.xlsx)</label>
+            <input type="file" name="file" accept=".xlsx,.xlsm" required
+                   style="display: block; width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #d1d5db;">
+        </div>
+
+        {% if import_type == 'debts' %}
+        <div style="margin-top: 15px; font-size: 13px; color: #4b5563; background: #f9fafb; padding: 12px 15px; border-radius: 8px;">
+            <strong>Sütun sırası (mütləq belə olmalıdır):</strong>
+            <ul style="margin: 8px 0 0 18px; list-style: disc;">
+                <li><strong>A sütunu</strong> — Bölgə (həkimin bölgə adı)</li>
+                <li><strong>B sütunu</strong> — Həkim adı</li>
+                <li><strong>C sütunu</strong> — Yekun borc (₼)</li>
+            </ul>
+        </div>
+        {% elif import_type == 'doctors_full' %}
+        <div style="margin-top: 15px; font-size: 13px; color: #4b5563; background: #f9fafb; padding: 12px 15px; border-radius: 8px;">
+            <strong>Sütun sırası (cədvəl belə olmalıdır):</strong>
+            <ul style="margin: 8px 0 0 18px; list-style: disc;">
+                <li><strong>B sütunu</strong> — Bölgə</li>
+                <li><strong>C sütunu</strong> — Həkim adı</li>
+                <li><strong>D sütunu</strong> — İxtisas</li>
+                <li><strong>E sütunu</strong> — Dərəcə (I Dərəcə, II Dərəcə, III Dərəcə, VIP)</li>
+                <li><strong>F sütunu</strong> — Kategoriya (A, A*, B, C)</li>
+                <li><strong>G sütunu</strong> — Müəssisə (Klinika)</li>
+                <li><strong>I sütunu</strong> — Borcu (₼)</li>
+            </ul>
+            <p style="margin-top: 10px; color: #6b7280;">Sistemdə olmayan bölgə, ixtisas, klinika və həkimlər əlavə olunacaq; artıq mövcud olanlar ötürüləcək.</p>
+        </div>
+        {% elif import_type == 'drugs' %}
+        <div style="margin-top: 15px; font-size: 13px; color: #4b5563; background: #f9fafb; padding: 12px 15px; border-radius: 8px;">
+            <strong>Gözlənilən sütun adları:</strong>
+            <ul style="margin: 8px 0 0 18px; list-style: disc;">
+                <li><code>Ad</code> (mütləq)</li>
+                <li><code>Tam Ad</code></li>
+                <li><code>Qiymət</code> (mütləq)</li>
+                <li><code>Komissiya</code></li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button type="submit" class="btn-master" style="text-decoration: none;">
+                <i class="fas fa-check"></i> Import et
+            </button>
+            <a href="{% url 'master_admin:company_detail' company.id %}" class="btn-master" style="text-decoration: none; background: #e5e7eb; color: #111827;">
+                İmtina
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+

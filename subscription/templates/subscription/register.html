@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şirkətinizi Qeydiyyatdan Keçirin - MedAdmin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .register-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        }
+
+        .register-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 800px;
+        }
+
+        .register-left {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .register-left h2 {
+            font-size: 36px;
+            margin-bottom: 24px;
+        }
+
+        .register-left p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .feature-list i {
+            font-size: 24px;
+            color: #10b981;
+        }
+
+        .register-right {
+            padding: 60px;
+            overflow-y: auto;
+        }
+
+        .register-right h2 {
+            font-size: 32px;
+            color: #1f2937;
+            margin-bottom: 32px;
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .plan-selector {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .plan-option {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .plan-option input[type="radio"] {
+            display: none;
+        }
+
+        .plan-option input[type="radio"]:checked + .plan-content {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .plan-option:hover {
+            border-color: #667eea;
+        }
+
+        .plan-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .plan-info h4 {
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .plan-info p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .plan-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .billing-cycle {
+            display: flex;
+            gap: 12px;
+        }
+
+        .billing-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .billing-option input[type="radio"] {
+            display: none;
+        }
+
+        .billing-option input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            color: #6b7280;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .messages {
+            margin-bottom: 24px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        @media (max-width: 968px) {
+            .register-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .register-left {
+                padding: 40px;
+            }
+
+            .register-right {
+                padding: 40px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-grid">
+            <div class="register-left">
+                <h2>Bu Gün Pulsuz Sınağa Başlayın</h2>
+                <p>Əməliyyatlarını sadələşdirmək üçün MedAdmin-dən istifadə edən yüzlərlə tibb müəssisəsinə qoşulun.</p>
+                
+                <ul class="feature-list">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>14 günlük pulsuz sınaq, kredit kartı tələb olunmur</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>Tam məlumat izolyasiyası və təhlükəsizlik</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>24/7 müştəri dəstəyi</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>Quraşdırmaq asandır, texniki biliklər tələb olunmur</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>İstənilən vaxt ləğv edin, heç bir sual verilməz</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="register-right">
+                <h2>Hesabınızı Yaradın</h2>
+
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'subscription:register' %}{% if plan_id %}?plan={{ plan_id }}{% endif %}">
+                    {% csrf_token %}
+                    
+                    {% if plan %}
+                    <div class="form-section" style="background: #f0f4ff; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: #667eea;">Seçilmiş Paket:</strong>
+                                <div style="color: #1f2937; margin-top: 4px;">{{ plan.name }}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 24px; font-weight: 700; color: #667eea;">{{ plan.price_monthly }} ₼</div>
+                                <div style="font-size: 12px; color: #6b7280;">/ ay</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="company_name">Şirkət Adı *</label>
+                        <input type="text" id="company_name" name="company_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="company_phone">Nömrə *</label>
+                        <input type="tel" id="company_phone" name="company_phone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">İstifadəçi Adı *</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Parol *</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password_confirm">Parol Təsdiqlə *</label>
+                        <input type="password" id="password_confirm" name="password_confirm" required>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-rocket"></i> Qeydiyyatdan Keç
+                    </button>
+
+                    <div class="login-link">
+                        Artıq hesabınız var? <a href="{% url 'core:login' %}">Daxil olun</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

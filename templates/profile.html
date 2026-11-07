@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - İstifadəçi Profili{% endblock %}
+{% block active_profile %}active{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <img src="https://ui-avatars.com/api/?name=Admin+Kullanıcı&size=140&background=1b2745&color=fff" alt="Profile avatar">
+            <span class="status-dot online"></span>
+        </div>
+        <div class="profile-summary">
+            <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="profile-role">{{ user.role }}</p>
+            <div class="profile-meta">
+                <div>
+                    <span class="meta-label">Son giriş</span>
+                    <span class="meta-value">Bu gün, 09:24</span>
+                </div>
+                <div>
+                    <span class="meta-label">İstifadəçi ID</span>
+                    <span class="meta-value">USR-0001</span>
+                </div>
+                <div>
+                    <span class="meta-label">Status</span>
+                    <span class="meta-badge success">Aktiv</span>
+                </div>
+            </div>
+        </div>
+        <div class="profile-actions">
+            <button class="action-btn outline">
+                <i class="fas fa-envelope"></i>
+                Mesaj Göndər
+            </button>
+            <button class="action-btn primary">
+                <i class="fas fa-user-edit"></i>
+                Profili Redaktə et
+            </button>
+        </div>
+    </div>
+
+    <div class="profile-grid">
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>Şəxsi məlumatlar</h2>
+                <button class="link-btn">Redaktə et</button>
+            </div>
+            <div class="info-list">
+                <div>
+                    <span class="info-label">Tam ad</span>
+                    <span class="info-value">{{ user.first_name }} {{ user.last_name }}</span>
+                </div>
+                <div>
+                    <span class="info-label">E-poçt</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Telefon</span>
+                    <span class="info-value">{{ user.phone }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Dil</span>
+                    <span class="info-value">Azərbaycan</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>Hesab fəaliyyəti</h2>
+                <span class="time-range">Son 30 gün</span>
+            </div>
+            <div class="activity-stats">
+                <div>
+                    <span class="stat-label">Yeni həkim</span>
+                    <span class="stat-value">18</span>
+                    <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> 6%</span>
+                </div>
+                <div>
+                    <span class="stat-label">Ödənişlər</span>
+                    <span class="stat-value">42</span>
+                    <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> 11%</span>
+                </div>
+                <div>
+                    <span class="stat-label">Hesabatlar</span>
+                    <span class="stat-value">9</span>
+                    <span class="stat-trend neutral"><i class="fas fa-minus"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card span-2">
+            <div class="card-header">
+                <h2>Son fəaliyyətlər</h2>
+            </div>
+            <ul class="timeline">
+                <li>
+                    <div class="timeline-icon success">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div>
+                        <p class="timeline-title">“Dr. Əli Hüseynov” profili yeniləndi</p>
+                        <span class="timeline-time">12 dəqiqə əvvəl</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="timeline-icon info">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <p class="timeline-title">Aylıq hesabat yaradıldı</p>
+                        <span class="timeline-time">Dünən, 18:24</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="timeline-icon warning">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div>
+                        <p class="timeline-title">Şifrə uğurla dəyişdirildi</p>
+                        <span class="timeline-time">2 gün əvvəl</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="timeline-icon primary">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <p class="timeline-title">İki faktorlu giriş aktiv edildi</p>
+                        <span class="timeline-time">4 gün əvvəl</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>Təhlükəsizlik</h2>
+            </div>
+            <div class="security-list">
+                <label class="security-item">
+                    <div>
+                        <h3>İki faktorlu identifikasiya</h3>
+                        <p>SMS kod vasitəsilə giriş</p>
+                    </div>
+                    <input type="checkbox" checked>
+                </label>
+                <label class="security-item">
+                    <div>
+                        <h3>Yeni cihaz xəbərdarlıqları</h3>
+                        <p>E-poçt bildirişləri göndər</p>
+                    </div>
+                    <input type="checkbox" checked>
+                </label>
+                <label class="security-item">
+                    <div>
+                        <h3>Avtomatik çıxış</h3>
+                        <p>30 dəqiqə hərəkətsizlikdən sonra</p>
+                    </div>
+                    <input type="checkbox">
+                </label>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>Tənzimləmələr</h2>
+            </div>
+            <form class="settings-form">
+                <label>
+                    <span>Bildiriş kanalı</span>
+                    <select>
+                        <option>E-poçt və mobil</option>
+                        <option>Yalnız e-poçt</option>
+                        <option>Yalnız mobil</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Dashboard mövzusu</span>
+                    <select>
+                        <option>Qaranlıq</option>
+                        <option>İşıqlı</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Hesabat dili</span>
+                    <select>
+                        <option>Azərbaycan</option>
+                        <option>İngilis</option>
+                        <option>Türk</option>
+                    </select>
+                </label>
+                <button type="button" class="action-btn primary full">Tənzimləmələri Saxla</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

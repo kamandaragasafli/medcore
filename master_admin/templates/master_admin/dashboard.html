@@ -1,0 +1,215 @@
+{% extends 'master_admin/base.html' %}
+
+{% block title %}Master Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 30px;">
+    <h1 style="color: var(--master-primary); margin-bottom: 10px;">
+        <i class="fas fa-crown"></i> Master Admin Dashboard
+    </h1>
+    <p style="color: #666;">Platform-wide Overview & Control Center</p>
+</div>
+
+<!-- Quick Stats -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <!-- Total Companies -->
+    <div class="master-stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-building"></i>
+        </div>
+        <div class="stat-value">{{ total_companies }}</div>
+        <div class="stat-label">Ümumi Şirkətlər</div>
+        <div style="margin-top: 10px; font-size: 12px; color: #22c55e;">
+            <i class="fas fa-arrow-up"></i> {{ recent_companies }} son 30 gün
+        </div>
+    </div>
+    
+    <!-- Active Companies -->
+    <div class="master-stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-value" style="color: #22c55e;">{{ active_companies }}</div>
+        <div class="stat-label">Aktiv Şirkətlər</div>
+        <div style="margin-top: 10px; font-size: 12px;">
+            {% widthratio active_companies total_companies 100 %}% of total
+        </div>
+    </div>
+    
+    
+    <!-- Inactive Companies -->
+    <div class="master-stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-value" style="color: #dc2626;">{{ inactive_companies }}</div>
+        <div class="stat-label">Deaktiv Şirkətlər</div>
+        <div style="margin-top: 10px; font-size: 12px;">
+            {% widthratio inactive_companies total_companies 100 %}% of total
+        </div>
+    </div>
+    
+    <!-- Total Users -->
+    <div class="master-stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Ümumi İstifadəçilər</div>
+        <div style="margin-top: 10px; font-size: 12px;">
+            {{ total_company_users }} şirkət istifadəçisi
+        </div>
+    </div>
+    
+    <!-- Superusers -->
+    <div class="master-stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="stat-value" style="color: #dc2626;">{{ superusers }}</div>
+        <div class="stat-label">Superusers</div>
+        <div style="margin-top: 10px; font-size: 12px;">
+            <i class="fas fa-shield-alt"></i> Admin accounts
+        </div>
+    </div>
+</div>
+
+<!-- Subscription Plans Overview -->
+<div class="master-card" style="margin-bottom: 30px;">
+    <h3 style="color: var(--master-primary); margin-bottom: 20px;">
+        <i class="fas fa-box"></i> Abunəlik Planları
+    </h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        {% for plan in subscription_plans %}
+        <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 18px; font-weight: bold; color: #1e40af;">
+                {{ plan.name }}
+            </div>
+            <div style="font-size: 24px; color: #3b82f6; font-weight: bold; margin: 10px 0;">
+                {{ plan.subscriber_count }}
+            </div>
+            <div style="font-size: 12px; color: #666;">
+                Aktiv abunəçilər
+            </div>
+            <div style="margin-top: 10px; font-size: 14px; color: #1e40af;">
+                <strong>{{ plan.price }} ₼</strong> / {{ plan.duration_days }} gün
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: #999;">Abunəlik planı tapılmadı</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <!-- Latest Companies -->
+    <div class="master-card">
+        <h3 style="color: var(--master-primary); margin-bottom: 20px;">
+            <i class="fas fa-building"></i> Son Qeydiyyatlar
+        </h3>
+        
+        {% for company in latest_companies %}
+        <div class="company-card {% if company.active_subscription %}{% if company.active_subscription.status == 'active' %}active{% endif %}{% else %}inactive{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: bold; font-size: 16px;">{{ company.name }}</div>
+                    <div style="color: #666; font-size: 12px; margin-top: 5px;">
+                        <i class="fas fa-envelope"></i> {{ company.email }}
+                    </div>
+                    <div style="color: #666; font-size: 12px;">
+                        <i class="fas fa-calendar"></i> {{ company.created_at|date:"d M Y" }}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    {% if company.active_subscription %}
+                        <span class="status-badge {{ company.active_subscription.status }}">
+                            {{ company.active_subscription.get_status_display }}
+                        </span>
+                    {% else %}
+                        <span class="status-badge inactive">Deaktiv</span>
+                    {% endif %}
+                    <div style="margin-top: 10px;">
+                        <a href="{% url 'master_admin:switch_to_company' company.id %}" class="btn-action btn-switch" style="text-decoration: none; display: inline-block;">
+                            <i class="fas fa-sign-in-alt"></i> Daxil Ol
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: #999;">Şirkət tapılmadı</p>
+        {% endfor %}
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{% url 'master_admin:company_list' %}" class="btn-master">
+                <i class="fas fa-list"></i> Bütün Şirkətlərə Bax
+            </a>
+        </div>
+    </div>
+    
+    <!-- Active Subscriptions -->
+    <div class="master-card">
+        <h3 style="color: var(--master-primary); margin-bottom: 20px;">
+            <i class="fas fa-star"></i> Aktiv Abunəliklər
+        </h3>
+        
+        {% for subscription in active_subscriptions %}
+        <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <div style="font-weight: bold;">{{ subscription.company.name }}</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        <span class="status-badge {{ subscription.status }}">{{ subscription.plan.name }}</span>
+                    </div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        <i class="fas fa-calendar-alt"></i> {{ subscription.start_date|date:"d M Y" }} - {{ subscription.end_date|date:"d M Y" }}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: bold; color: #22c55e; font-size: 18px;">
+                        {{ subscription.plan.price }} ₼
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                        {% now "Y-m-d" as today %}
+                        {{ subscription.end_date|timeuntil }} qalıb
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: #999;">Aktiv abunəlik yoxdur</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="master-card" style="margin-top: 30px;">
+    <h3 style="color: var(--master-primary); margin-bottom: 20px;">
+        <i class="fas fa-bolt"></i> Sürətli Əməliyyatlar
+    </h3>
+    
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="{% url 'master_admin:company_list' %}" class="btn-master">
+            <i class="fas fa-building"></i> Şirkətləri İdarə Et
+        </a>
+        
+        <a href="{% url 'master_admin:user_management' %}" class="btn-master">
+            <i class="fas fa-users"></i> İstifadəçiləri İdarə Et
+        </a>
+        
+        <a href="{% url 'master_admin:analytics' %}" class="btn-master">
+            <i class="fas fa-chart-bar"></i> Analitikaya Bax
+        </a>
+        
+        <a href="/admin/subscription/subscriptionplan/" class="btn-master" target="_blank">
+            <i class="fas fa-box"></i> Paketləri İdarə Et
+        </a>
+        
+        <a href="/admin/" class="btn-master" target="_blank">
+            <i class="fas fa-cog"></i> Django Admin
+        </a>
+    </div>
+</div>
+{% endblock %}
+

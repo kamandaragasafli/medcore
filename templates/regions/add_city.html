@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAdmin - Yeni Şəhər{% endblock %}
+
+{% block active_cities %}active{% endblock %}
+
+{% block content %}
+<style>
+.alert { margin-bottom: 20px; padding: 15px; border-radius: 8px; }
+.alert-success { background: #dcfce7; color: #15803d; }
+.alert-error { background: #fee2e2; color: #991b1b; }
+</style>
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Şəhərlər</div>
+            <h1>Yeni Şəhər Əlavə Et</h1>
+            <p>Yeni şəhər məlumatlarını daxil edin</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'regions:city_list' %}" class="ghost-btn" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i>
+                Geri
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container" style="max-width: 600px; margin: 0 auto;">
+        <div class="form-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px;">
+            <form method="POST" action="{% url 'regions:add_city' %}">
+                {% csrf_token %}
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Bölgə <span style="color: #ef4444;">*</span>
+                    </label>
+                    <select
+                        name="region"
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                    >
+                        <option value="">Bölgə seçin</option>
+                        {% for region in regions %}
+                        <option value="{{ region.id }}">{{ region.name }}</option>
+                        {% empty %}
+                        <option value="" disabled>Əvvəlcə bölgə əlavə edin</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text);">
+                        Şəhər Adı <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="name"
+                        class="form-input"
+                        placeholder="Məsələn: Bakı, Gəncə, Sumqayıt"
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text); font-size: 14px;"
+                    >
+                </div>
+
+                <div class="form-actions" style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+                    <a href="{% url 'regions:city_list' %}" class="ghost-btn" style="flex: 1; padding: 12px; text-align: center; text-decoration: none; border-radius: 8px; border: 1px solid var(--border); color: var(--text);">
+                        Ləğv et
+                    </a>
+                    <button type="submit" class="primary-btn" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;" {% if not regions %}disabled{% endif %}>
+                        <i class="fas fa-save"></i>
+                        Yadda Saxla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

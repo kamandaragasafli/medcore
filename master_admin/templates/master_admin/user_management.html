@@ -1,0 +1,140 @@
+{% extends 'master_admin/base.html' %}
+
+{% block title %}İstifadəçi İdarəetməsi - Master Admin{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 30px;">
+    <h1 style="color: var(--master-primary);">
+        <i class="fas fa-users"></i> İstifadəçi İdarəetməsi
+    </h1>
+    <p style="color: #666;">Bütün platform istifadəçilərini görün və idarə edin</p>
+</div>
+
+<!-- Search and Filter -->
+<div class="master-card" style="margin-bottom: 20px;">
+    <form method="get" action="">
+        <div class="search-box">
+            <input 
+                type="text" 
+                name="search" 
+                placeholder="İstifadəçi adı, email, şirkət adı ilə axtar..." 
+                value="{{ search_query }}"
+            >
+            
+            <select name="role">
+                <option value="">Bütün Rollar</option>
+                <option value="owner" {% if role_filter == 'owner' %}selected{% endif %}>Sahibkar</option>
+                <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                <option value="user" {% if role_filter == 'user' %}selected{% endif %}>İstifadəçi</option>
+            </select>
+            
+            <button type="submit">
+                <i class="fas fa-search"></i> Axtar
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Users Table -->
+<div class="master-card">
+    {% if users %}
+    <table class="table-master">
+        <thead>
+            <tr>
+                <th>İstifadəçi</th>
+                <th>Şirkət</th>
+                <th>Rol</th>
+                <th>Status</th>
+                <th>Qeydiyyat</th>
+                <th>Əməliyyatlar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in users %}
+            <tr>
+                <td>
+                    <div style="font-weight: 600;">
+                        {{ profile.user.get_full_name|default:profile.user.username }}
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        <i class="fas fa-envelope"></i> {{ profile.user.email }}
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        <i class="fas fa-user"></i> @{{ profile.user.username }}
+                    </div>
+                </td>
+                <td>
+                    <a href="{% url 'master_admin:company_detail' profile.company.id %}" style="color: var(--master-primary); text-decoration: none; font-weight: 600;">
+                        {{ profile.company.name }}
+                    </a>
+                </td>
+                <td>
+                    <span style="padding: 6px 12px; background: {% if profile.role == 'owner' %}#fef3c7{% elif profile.role == 'admin' %}#dbeafe{% else %}#f3f4f6{% endif %}; color: {% if profile.role == 'owner' %}#b45309{% elif profile.role == 'admin' %}#1e40af{% else %}#374151{% endif %}; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                        {{ profile.get_role_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if profile.is_active %}
+                        <span style="color: #22c55e; font-weight: 600;">
+                            <i class="fas fa-check-circle"></i> Aktiv
+                        </span>
+                    {% else %}
+                        <span style="color: #dc2626; font-weight: 600;">
+                            <i class="fas fa-times-circle"></i> Deaktiv
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="font-size: 13px;">
+                        {{ profile.created_at|date:"d M Y" }}
+                    </div>
+                    <div style="font-size: 11px; color: #666;">
+                        {{ profile.created_at|date:"H:i" }}
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="/admin/auth/user/{{ profile.user.id }}/change/" class="btn-action btn-view" target="_blank" style="text-decoration: none;">
+                            <i class="fas fa-eye"></i> Bax
+                        </a>
+                        <a href="{% url 'master_admin:switch_to_company' profile.company.id %}" class="btn-action btn-switch" style="text-decoration: none;">
+                            <i class="fas fa-sign-in-alt"></i> Şirkətə Gir
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Summary -->
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <strong>Ümumi: {{ users|length }} istifadəçi</strong>
+        {% if search_query %}
+        | Axtarış: "{{ search_query }}"
+        {% endif %}
+        {% if role_filter %}
+        | Rol: {{ role_filter|title }}
+        {% endif %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px;">
+        <i class="fas fa-search" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+        <p style="color: #999; font-size: 18px;">Heç bir istifadəçi tapılmadı</p>
+        {% if search_query or role_filter %}
+        <a href="{% url 'master_admin:user_management' %}" class="btn-master" style="text-decoration: none; display: inline-block; margin-top: 15px;">
+            <i class="fas fa-times"></i> Filterləri Sıfırla
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Back Button -->
+<div style="margin-top: 30px; text-align: center;">
+    <a href="{% url 'master_admin:dashboard' %}" class="btn-master" style="text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Ana Səhifəyə Qayıt
+    </a>
+</div>
+{% endblock %}
+

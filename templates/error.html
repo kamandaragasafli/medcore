@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Səhifə Tapılmadı - MedAdmin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #438deeff;
+            --secondary: rgba(0, 153, 255, 1);
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --error: #ff4757;
+            --dark: #090040;
+            --dark-light: #1E3E62;
+            --dark-lighter: #003161;
+            --text: #f5f5f5;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--dark-light));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .error-content {
+            background: var(--dark-light);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-icon {
+            font-size: 120px;
+            color: var(--error);
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        .error-code {
+            font-size: 120px;
+            font-weight: 900;
+            color: var(--error);
+            margin-bottom: 10px;
+            line-height: 1;
+            text-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+        }
+
+        .error-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            color: var(--text-muted);
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(67, 141, 238, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--dark-lighter);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            background: var(--dark-lighter);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 141, 238, 0.2);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .search-btn:hover {
+            color: var(--primary);
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .quick-link {
+            background: var(--dark-lighter);
+            padding: 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .quick-link:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .quick-link i {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .quick-link:hover i {
+            color: white;
+        }
+
+        .error-details {
+            background: var(--dark-lighter);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 4px solid var(--error);
+            text-align: left;
+        }
+
+        .details-title {
+            color: var(--text);
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .details-text {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            font-size: 24px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .floating-1 { top: 20px; left: 30px; animation-delay: 0s; }
+        .floating-2 { top: 60px; right: 40px; animation-delay: 1s; }
+        .floating-3 { bottom: 40px; left: 50px; animation-delay: 2s; }
+        .floating-4 { bottom: 80px; right: 30px; animation-delay: 1.5s; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .error-content {
+                padding: 40px 30px;
+            }
+            
+            .error-code {
+                font-size: 80px;
+            }
+            
+            .error-title {
+                font-size: 24px;
+            }
+            
+            .error-message {
+                font-size: 16px;
+            }
+            
+            .error-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                justify-content: center;
+            }
+            
+            .quick-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .error-content {
+                padding: 30px 20px;
+            }
+            
+            .error-code {
+                font-size: 60px;
+            }
+            
+            .error-icon {
+                font-size: 80px;
+            }
+            
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Dark overlay effect */
+        .error-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--error), var(--warning), var(--primary));
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-content">
+            <!-- Floating decorative elements -->
+            <div class="floating-element floating-1">
+                <i class="fas fa-file-medical"></i>
+            </div>
+            <div class="floating-element floating-2">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="floating-element floating-3">
+                <i class="fas fa-pills"></i>
+            </div>
+            <div class="floating-element floating-4">
+                <i class="fas fa-hospital"></i>
+            </div>
+
+            <!-- Main error content -->
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <h1 class="error-code">404</h1>
+            <h2 class="error-title">Səhifə Tapılmadı</h2>
+            
+            <p class="error-message">
+                Axtardığınız səhifə mövcud deyil, silinmiş və ya başqa ünvana köçürülmüş ola bilər.
+            </p>
+
+            <!-- Search box -->
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Səhifə axtar...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="error-actions">
+                <a href="dashboard.html" class="action-btn btn-primary">
+                    <i class="fas fa-home"></i>
+                    Ana Səhifə
+                </a>
+                <button class="action-btn btn-secondary" onclick="history.back()">
+                    <i class="fas fa-arrow-left"></i>
+                    Geri Qayıt
+                </button>
+                <a href="contact.html" class="action-btn btn-secondary">
+                    <i class="fas fa-headset"></i>
+                    Dəstək
+                </a>
+            </div>
+
+            <!-- Quick links -->
+            <div class="quick-links">
+                <a href="hekimler.html" class="quick-link">
+                    <i class="fas fa-user-md"></i>
+                    Həkimlər
+                </a>
+                <a href="dermanlar.html" class="quick-link">
+                    <i class="fas fa-pills"></i>
+                    Dərmanlar
+                </a>
+                <a href="xestexana.html" class="quick-link">
+                    <i class="fas fa-hospital"></i>
+                    Xəstəxana
+                </a>
+                <a href="abune.html" class="quick-link">
+                    <i class="fas fa-crown"></i>
+                    Abunə
+                </a>
+            </div>
+
+            <!-- Error details -->
+            <div class="error-details">
+                <div class="details-title">
+                    <i class="fas fa-info-circle"></i>
+                    Səhv Haqqında Məlumat
+                </div>
+                <div class="details-text">
+                    • Səhifə URL-i düzgün yazıldığına əmin olun<br>
+                    • Səhifənin köhnə linkdə ola biləcəyini yoxlayın<br>
+                    • Brauzerinizin keş məlumatlarını təmizləyin<br>
+                    • Əgər problem davam edirsə, dəstək komandamızla əlaqə saxlayın
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        document.querySelector('.search-btn').addEventListener('click', performSearch);
+
+        function performSearch() {
+            const query = document.querySelector('.search-input').value.trim();
+            if (query) {
+                alert(`"${query}" üçün axtarış edilir...`);
+                // Burada axtarış funksionallığı əlavə edilə bilər
+            }
+        }
+
+        // Add some interactive effects
+        document.querySelectorAll('.quick-link').forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.05)';
+            });
+            
+            link.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Auto-focus search input
+        setTimeout(() => {
+            document.querySelector('.search-input').focus();
+        }, 1000);
+
+        // Error code animation
+        const errorCode = document.querySelector('.error-code');
+        setInterval(() => {
+            errorCode.style.textShadow = `0 5px 15px rgba(255, 71, 87, ${Math.random() * 0.5 + 0.3})`;
+        }, 2000);
+    </script>
+</body>
+</html>

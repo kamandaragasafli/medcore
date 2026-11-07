@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planınızı Seçin - MedAdmin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 60px 20px;
+        }
+
+        .pricing-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pricing-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+
+        .pricing-header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .pricing-header p {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .billing-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin: 32px 0;
+        }
+
+        .billing-toggle span {
+            color: white;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: calc(100% - 27px);
+        }
+
+        .save-badge {
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            transition: all 0.3s;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .plan-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+        }
+
+        .plan-card.popular {
+            border: 3px solid #667eea;
+            transform: scale(1.05);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .plan-description {
+            color: #6b7280;
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .plan-price {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-price .price-amount {
+            font-size: 48px;
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .plan-price .price-currency {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .plan-price .price-period {
+            font-size: 18px;
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 32px 0;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .plan-features li i {
+            color: #10b981;
+            font-size: 18px;
+        }
+
+        .plan-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .plan-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .plan-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .plan-btn.secondary {
+            background: #f3f4f6;
+            color: #667eea;
+        }
+
+        .plan-btn.secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .trial-badge {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .pricing-header h1 {
+                font-size: 32px;
+            }
+
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-card.popular {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pricing-container">
+        <div class="pricing-header">
+            <h1>Mükəmməl Planınızı Seçin</h1>
+            <p>14 günlük pulsuz sınaq ilə başlayın. Kredit kartı tələb olunmur.</p>
+            
+            <div class="billing-toggle">
+                <span id="monthly-label">Aylıq</span>
+                <div class="toggle-switch" id="billing-toggle">
+                </div>
+                <span id="yearly-label">İllik</span>
+                <span class="save-badge">20% Endirim</span>
+            </div>
+        </div>
+
+        <div class="plans-grid">
+            {% for plan in plans %}
+            <div class="plan-card {% if plan.is_popular %}popular{% endif %}">
+                {% if plan.is_popular %}
+                <div class="popular-badge">
+                    <i class="fas fa-star"></i> Ən Populyar
+                </div>
+                {% endif %}
+                
+                <div class="plan-name">{{ plan.name }}</div>
+                <div class="plan-description">{{ plan.description }}</div>
+                
+                <div class="plan-price">
+                    <span class="price-amount" data-monthly="{{ plan.price_monthly }}" data-yearly="{{ plan.price_yearly }}">{{ plan.price_monthly }}</span>
+                    <span class="price-currency">AZN</span>
+                    <span class="price-period">/ ay</span>
+                </div>
+                
+                <ul class="plan-features">
+                    {% for feature in plan.features %}
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ feature }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                <a href="{% url 'subscription:register' %}?plan={{ plan.id }}" 
+                   class="plan-btn {% if plan.is_popular %}primary{% else %}secondary{% endif %}">
+                    Başla
+                </a>
+                
+                <!-- <div class="trial-badge">
+                    <i class="fas fa-gift"></i> 14 günlük pulsuz sınaq daxildir
+                </div> -->
+            </div>
+            {% empty %}
+            <div style="grid-column: 1/-1; text-align: center; color: white;">
+                <p>Hazırda heç bir plan mövcud deyil. Zəhmət olmasa sonra yenidən yoxlayın.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const billingToggle = document.getElementById('billing-toggle');
+        const priceAmounts = document.querySelectorAll('.price-amount');
+        const pricePeriods = document.querySelectorAll('.price-period');
+        let isYearly = false;
+
+        billingToggle.addEventListener('click', () => {
+            isYearly = !isYearly;
+            billingToggle.classList.toggle('active');
+            
+            priceAmounts.forEach(amount => {
+                const monthly = parseFloat(amount.dataset.monthly);
+                const yearly = parseFloat(amount.dataset.yearly);
+                
+                if (isYearly) {
+                    amount.textContent = (yearly / 12).toFixed(2);
+                } else {
+                    amount.textContent = monthly.toFixed(2);
+                }
+            });
+            
+            pricePeriods.forEach(period => {
+                period.textContent = isYearly ? ' / ay (illik ödəniş)' : ' / ay';
+            });
+        });
+    </script>
+</body>
+</html>
+

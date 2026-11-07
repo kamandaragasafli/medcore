@@ -1,0 +1,157 @@
+{% extends 'master_admin/base.html' %}
+
+{% block title %}Şirkətlər - Master Admin{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1 style="color: var(--master-primary);">
+            <i class="fas fa-building"></i> Şirkətlər
+        </h1>
+        <p style="color: #666;">Bütün qeydiyyatlı şirkətləri görün və idarə edin</p>
+    </div>
+    <div>
+        <a href="{% url 'master_admin:send_notification' %}" class="btn-master" style="text-decoration: none; background: #f59e0b;">
+            <i class="fas fa-bell"></i> Bildiriş Göndər
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="master-card" style="margin-bottom: 20px;">
+    <form method="get" action="">
+        <div class="search-box">
+            <input 
+                type="text" 
+                name="search" 
+                placeholder="Şirkət adı, email və ya telefon ilə axtar..." 
+                value="{{ search_query }}"
+            >
+            
+            <select name="status">
+                <option value="">Bütün Statuslar</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Aktiv</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Deaktiv</option>
+            </select>
+            
+            <button type="submit">
+                <i class="fas fa-search"></i> Axtar
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Companies Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;">
+    {% for item in companies_data %}
+    <div class="company-card {{ item.status }}">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 10px 0; color: #1f2937;">
+                    {{ item.company.name }}
+                </h3>
+                
+                <div style="font-size: 13px; color: #666; margin-bottom: 5px;">
+                    <i class="fas fa-envelope"></i> {{ item.company.email }}
+                </div>
+                
+                <div style="font-size: 13px; color: #666; margin-bottom: 5px;">
+                    <i class="fas fa-phone"></i> {{ item.company.phone|default:"N/A" }}
+                </div>
+                
+                <div style="font-size: 13px; color: #666;">
+                    <i class="fas fa-calendar"></i> {{ item.company.created_at|date:"d M Y" }}
+                </div>
+            </div>
+            
+            <div style="text-align: right;">
+                {% if item.subscription %}
+                    <span class="status-badge {{ item.subscription.status }}">
+                        {{ item.subscription.get_status_display }}
+                    </span>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                        {{ item.subscription.plan.name }}
+                    </div>
+                {% else %}
+                    <span class="status-badge inactive">Deaktiv</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+            <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: var(--master-primary);">
+                    {{ item.user_count }}
+                </div>
+                <div style="font-size: 11px; color: #666;">İstifadəçilər</div>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #3b82f6;">
+                    {% if item.subscription %}{{ item.subscription.plan.price }}₼{% else %}0₼{% endif %}
+                </div>
+                <div style="font-size: 11px; color: #666;">Paket Qiyməti</div>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #10b981;">
+                    {% if item.subscription %}{{ item.subscription.days_remaining }}{% else %}0{% endif %}
+                </div>
+                <div style="font-size: 11px; color: #666;">Gün Qalıb</div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="action-buttons">
+            <a href="{% url 'master_admin:company_detail' item.company.id %}" class="btn-action btn-view" style="text-decoration: none;">
+                <i class="fas fa-eye"></i> Ətraflı
+            </a>
+            
+            <a href="{% url 'master_admin:send_notification' item.company.id %}" class="btn-action" style="text-decoration: none; background: #f59e0b; color: white;">
+                <i class="fas fa-bell"></i> Bildiriş
+            </a>
+            
+            <a href="{% url 'master_admin:switch_to_company' item.company.id %}" class="btn-action btn-switch" style="text-decoration: none;">
+                <i class="fas fa-sign-in-alt"></i> Daxil Ol
+            </a>
+            
+            <a href="/admin/subscription/company/{{ item.company.id }}/change/" class="btn-action btn-edit" target="_blank" style="text-decoration: none;">
+                <i class="fas fa-edit"></i> Redaktə
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="master-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+        <i class="fas fa-search" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+        <p style="color: #999; font-size: 18px;">Heç bir şirkət tapılmadı</p>
+        {% if search_query or status_filter %}
+        <a href="{% url 'master_admin:company_list' %}" class="btn-master" style="text-decoration: none; display: inline-block; margin-top: 15px;">
+            <i class="fas fa-times"></i> Filterləri Sıfırla
+        </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Summary -->
+<div class="master-card" style="margin-top: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <strong>Ümumi: {{ companies_data|length }} şirkət</strong>
+            {% if search_query %}
+            | Axtarış: "{{ search_query }}"
+            {% endif %}
+            {% if status_filter %}
+            | Status: {{ status_filter|title }}
+            {% endif %}
+        </div>
+        <div>
+            <a href="{% url 'master_admin:dashboard' %}" class="btn-master" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Ana Səhifəyə Qayıt
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
